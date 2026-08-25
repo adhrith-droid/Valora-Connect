@@ -1,0 +1,544 @@
+/* ==========================================================================
+   VALORA — Global Design System Tokens & Base Foundation
+   Phase 2: Global UI Tokens, Typography, Buttons & Navigation System
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
+
+:root {
+    /* Background Canvas Tokens */
+    --vl-bg-base: #08080a;
+    --vl-bg-surface: #101014;
+    --vl-bg-surface-elevated: #16161c;
+    --vl-bg-surface-active: #1d1d25;
+    --vl-bg-glass: rgba(14, 14, 18, 0.78);
+    --vl-bg-glass-elevated: rgba(22, 22, 28, 0.85);
+
+    /* VALORA Crimson Accent Tokens */
+    --vl-accent: #ef4444;
+    --vl-accent-hover: #dc2626;
+    --vl-accent-active: #b91c1c;
+    --vl-accent-glow: rgba(239, 68, 68, 0.28);
+    --vl-accent-subtle: rgba(239, 68, 68, 0.12);
+    --vl-accent-subtle-hover: rgba(239, 68, 68, 0.18);
+    --vl-accent-border: rgba(239, 68, 68, 0.35);
+
+    /* Secondary Accent Tokens */
+    --vl-accent-cool: #3b82f6;
+    --vl-accent-cool-subtle: rgba(59, 130, 246, 0.12);
+    --vl-accent-amber: #f59e0b;
+    --vl-accent-emerald: #10b981;
+
+    /* Typography & Content Colors */
+    --vl-text-primary: #f8fafc;
+    --vl-text-secondary: #94a3b8;
+    --vl-text-muted: #64748b;
+    --vl-text-disabled: #475569;
+
+    /* Border & Divider Tokens */
+    --vl-border-subtle: rgba(255, 255, 255, 0.07);
+    --vl-border-medium: rgba(255, 255, 255, 0.14);
+    --vl-border-strong: rgba(255, 255, 255, 0.24);
+
+    /* Radii Tokens */
+    --vl-radius-xs: 6px;
+    --vl-radius-sm: 10px;
+    --vl-radius-md: 14px;
+    --vl-radius-lg: 20px;
+    --vl-radius-xl: 28px;
+    --vl-radius-full: 9999px;
+
+    /* Elevation & Shadows */
+    --vl-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
+    --vl-shadow-md: 0 8px 24px rgba(0, 0, 0, 0.55);
+    --vl-shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.7);
+    --vl-shadow-glow: 0 0 24px var(--vl-accent-glow);
+    --vl-shadow-glow-lg: 0 0 48px rgba(239, 68, 68, 0.45);
+
+    /* Layout & Sizing */
+    --vl-header-height: 72px;
+    --vl-header-height-mobile: 64px;
+    --vl-max-width: 1240px;
+    --vl-transition-base: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    --vl-transition-smooth: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Base resets & typography */
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+body {
+    background-color: var(--vl-bg-base);
+    color: var(--vl-text-primary);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    margin: 0;
+    padding: 0;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+}
+
+/* Glassmorphism System */
+.vl-glass {
+    background: var(--vl-bg-glass);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--vl-border-subtle);
+}
+
+.vl-glass-elevated {
+    background: var(--vl-bg-glass-elevated);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--vl-border-medium);
+    box-shadow: var(--vl-shadow-md);
+}
+
+.vl-glass-card {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.01) 100%), var(--vl-bg-surface);
+    border: 1px solid var(--vl-border-subtle);
+    border-radius: var(--vl-radius-lg);
+    box-shadow: var(--vl-shadow-sm);
+    transition: var(--vl-transition-smooth);
+}
+
+.vl-glass-card:hover {
+    border-color: var(--vl-border-medium);
+    box-shadow: var(--vl-shadow-md);
+    transform: translateY(-2px);
+}
+
+/* Typography Hierarchy */
+.vl-display-heading {
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    font-weight: 900;
+    letter-spacing: -0.04em;
+    line-height: 1.05;
+    color: var(--vl-text-primary);
+}
+
+.vl-section-heading {
+    font-size: clamp(1.75rem, 3.5vw, 2.5rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.15;
+    color: var(--vl-text-primary);
+}
+
+.vl-subheading {
+    font-size: 1.125rem;
+    font-weight: 400;
+    line-height: 1.6;
+    color: var(--vl-text-secondary);
+}
+
+.vl-caption {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--vl-text-muted);
+}
+
+/* VALORA Wordmark */
+.vl-wordmark {
+    font-size: 1.35rem;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    color: var(--vl-text-primary);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    user-select: none;
+    transition: opacity 0.2s ease;
+}
+
+.vl-wordmark:hover {
+    opacity: 0.9;
+}
+
+.vl-wordmark-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: var(--vl-accent);
+    display: inline-block;
+    box-shadow: 0 0 10px var(--vl-accent);
+    margin-left: 2px;
+    margin-bottom: 2px;
+}
+
+/* Button System (Micro-Scale & Smooth Feedback) */
+.vl-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-family: inherit;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1;
+    padding: 12px 24px;
+    border-radius: var(--vl-radius-full);
+    border: 1px solid transparent;
+    cursor: pointer;
+    text-decoration: none;
+    user-select: none;
+    white-space: nowrap;
+    transition: var(--vl-transition-base);
+    outline: none;
+}
+
+.vl-btn:focus-visible {
+    box-shadow: 0 0 0 3px var(--vl-accent-glow), 0 0 0 1px var(--vl-accent);
+}
+
+.vl-btn:active {
+    transform: scale(0.97);
+}
+
+.vl-btn-primary {
+    background: var(--vl-accent);
+    color: #ffffff;
+    border-color: rgba(255, 255, 255, 0.15);
+    box-shadow: var(--vl-shadow-glow);
+}
+
+.vl-btn-primary:hover {
+    background: var(--vl-accent-hover);
+    box-shadow: var(--vl-shadow-glow-lg);
+    transform: translateY(-1px);
+}
+
+.vl-btn-primary:active {
+    background: var(--vl-accent-active);
+    transform: translateY(0) scale(0.97);
+}
+
+.vl-btn-secondary {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--vl-text-primary);
+    border-color: var(--vl-border-medium);
+}
+
+.vl-btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--vl-border-strong);
+    transform: translateY(-1px);
+}
+
+.vl-btn-ghost {
+    background: transparent;
+    color: var(--vl-text-secondary);
+    border-color: transparent;
+}
+
+.vl-btn-ghost:hover {
+    color: var(--vl-text-primary);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.vl-btn-danger {
+    background: var(--vl-accent-subtle);
+    color: #fca5a5;
+    border-color: var(--vl-accent-border);
+}
+
+.vl-btn-danger:hover {
+    background: var(--vl-accent);
+    color: #ffffff;
+    box-shadow: var(--vl-shadow-glow);
+}
+
+.vl-btn-icon {
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--vl-border-subtle);
+    color: var(--vl-text-secondary);
+    transition: var(--vl-transition-base);
+}
+
+.vl-btn-icon:hover {
+    color: var(--vl-text-primary);
+    background: rgba(255, 255, 255, 0.09);
+    border-color: var(--vl-border-medium);
+}
+
+/* Badges & Indicators (SmoothUI Notification Badge adaptation) */
+.vl-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: var(--vl-radius-full);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.vl-badge-subtle {
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--vl-text-secondary);
+    border: 1px solid var(--vl-border-subtle);
+}
+
+.vl-badge-accent {
+    background: var(--vl-accent-subtle);
+    color: #f87171;
+    border: 1px solid var(--vl-accent-border);
+}
+
+.vl-badge-amber {
+    background: rgba(245, 158, 11, 0.12);
+    color: #fbbf24;
+    border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.vl-badge-live {
+    background: rgba(16, 185, 129, 0.12);
+    color: #34d399;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.vl-dot-pulse {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: currentColor;
+    position: relative;
+}
+
+.vl-dot-pulse::after {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    background-color: currentColor;
+    opacity: 0.4;
+    animation: vlPulse 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+@keyframes vlPulse {
+    0% { transform: scale(1); opacity: 0.6; }
+    50% { transform: scale(2.2); opacity: 0; }
+    100% { transform: scale(1); opacity: 0; }
+}
+
+/* ==========================================================================
+   Header & Navigation Component Styles
+   ========================================================================== */
+
+.vl-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: var(--vl-header-height);
+    background: var(--vl-bg-glass);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border-bottom: 1px solid var(--vl-border-subtle);
+    z-index: 990;
+    display: flex;
+    align-items: center;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.vl-header-container {
+    width: 100%;
+    max-width: var(--vl-max-width);
+    margin: 0 auto;
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.vl-header-left {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+}
+
+.vl-nav-links {
+    display: none;
+    align-items: center;
+    gap: 6px;
+}
+
+@media (min-width: 860px) {
+    .vl-nav-links {
+        display: flex;
+    }
+}
+
+.vl-nav-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: var(--vl-radius-md);
+    color: var(--vl-text-secondary);
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: var(--vl-transition-base);
+    position: relative;
+    user-select: none;
+}
+
+.vl-nav-item:hover {
+    color: var(--vl-text-primary);
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.vl-nav-item.active {
+    color: var(--vl-text-primary);
+    font-weight: 600;
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.vl-nav-item.active::after {
+    content: '';
+    position: absolute;
+    bottom: -16px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 16px;
+    height: 2px;
+    border-radius: 2px;
+    background-color: var(--vl-accent);
+}
+
+.vl-nav-item.disabled {
+    opacity: 0.6;
+    cursor: default;
+}
+
+.vl-nav-tag {
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 2px 6px;
+    border-radius: var(--vl-radius-full);
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--vl-text-muted);
+}
+
+.vl-header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.vl-header-cta {
+    padding: 9px 18px;
+    font-size: 0.875rem;
+}
+
+/* Mobile Nav Toggle Button */
+.vl-mobile-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: var(--vl-radius-md);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--vl-border-subtle);
+    color: var(--vl-text-primary);
+    cursor: pointer;
+    transition: var(--vl-transition-base);
+}
+
+.vl-mobile-toggle:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+@media (min-width: 860px) {
+    .vl-mobile-toggle {
+        display: none;
+    }
+}
+
+/* Mobile Nav Drawer */
+.vl-mobile-drawer {
+    position: fixed;
+    top: var(--vl-header-height);
+    left: 0;
+    right: 0;
+    background: var(--vl-bg-glass-elevated);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-bottom: 1px solid var(--vl-border-medium);
+    padding: 16px 20px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    transform: translateY(-110%);
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 980;
+}
+
+.vl-mobile-drawer.open {
+    transform: translateY(0);
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.vl-mobile-nav-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    border-radius: var(--vl-radius-md);
+    color: var(--vl-text-secondary);
+    font-size: 1rem;
+    font-weight: 500;
+    text-decoration: none;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid transparent;
+    transition: var(--vl-transition-base);
+}
+
+.vl-mobile-nav-link:hover, .vl-mobile-nav-link.active {
+    color: var(--vl-text-primary);
+    background: rgba(255, 255, 255, 0.05);
+    border-color: var(--vl-border-subtle);
+}
+
+.vl-mobile-nav-link.active {
+    font-weight: 600;
+}
+
+/* Responsive Helper Constraints */
+@media (max-width: 640px) {
+    :root {
+        --vl-header-height: var(--vl-header-height-mobile);
+    }
+    
+    .vl-header-container {
+        padding: 0 16px;
+    }
+    
+    .vl-header-cta {
+        padding: 8px 14px;
+        font-size: 0.8125rem;
+    }
+}

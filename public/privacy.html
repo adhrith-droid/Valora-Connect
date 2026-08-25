@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VALORA - Privacy Policy</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="stylesheet" href="/valora-tokens.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --bg-color: var(--vl-bg-base);
+            --accent-color: var(--vl-accent);
+            --header-height: 64px;
+        }
+        body {
+            background-color: var(--bg-color);
+            color: #ffffff;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            min-height: 100dvh;
+            display: flex;
+            flex-direction: column;
+        }
+        header {
+            height: var(--header-height);
+            background: var(--vl-bg-glass);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--vl-border-subtle);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            z-index: 100;
+            flex-shrink: 0;
+        }
+        .nav-link {
+            color: #9ca3af;
+            font-size: 14px;
+            font-weight: 500;
+            transition: color 0.2s;
+            text-decoration: none;
+        }
+        .nav-link:hover, .nav-link.active {
+            color: #ffffff;
+        }
+        .content-container {
+            max-width: 800px;
+            width: 90%;
+            margin: 60px auto;
+            line-height: 1.6;
+            color: #d1d5db;
+        }
+        h1 { color: #fff; font-size: 3rem; font-weight: 900; margin-bottom: 2rem; letter-spacing: -0.025em; }
+        h2 { color: #fff; font-size: 1.5rem; font-weight: 700; margin-top: 2.5rem; margin-bottom: 1rem; }
+        p { margin-bottom: 1.25rem; }
+    </style>
+</head>
+<body>
+    <header id="main-header">
+        <div class="flex items-center gap-8">
+            <a href="/" class="vl-wordmark" aria-label="VALORA Home">
+                VALORA<span class="vl-wordmark-dot"></span>
+            </a>
+            <nav id="nav-links" class="hidden md:flex items-center gap-6">
+                <a href="/" class="nav-link">Home</a>
+                <a href="/privacy.html" class="nav-link active">Privacy</a>
+                <a href="/terms.html" class="nav-link">Terms</a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="content-container">
+        <h1>Privacy Policy</h1>
+        <p>Last updated: February 27, 2026</p>
+
+        <h2>1. Information We Collect</h2>
+        <p>We collect information you provide directly to us when you enter the site, such as your name and date of birth. This information is stored temporarily in your browser's session storage and is not saved to any database.</p>
+
+        <h2>2. How We Use Your Information</h2>
+        <p>We use the information we collect to verify you meet the minimum age requirement (18+) and to display your name during video chat sessions.</p>
+
+        <h2>3. Video and Audio Data</h2>
+        <p>VALORA uses WebRTC technology for peer-to-peer video and audio communication. We do not store or record your video calls on our servers. The connection is established directly between you and the other user.</p>
+
+        <h2>4. Data Security</h2>
+        <p>We use industry-standard security measures to protect your personal information. Since we do not store your data persistently, the risk of data breaches is significantly minimized.</p>
+
+        <h2>5. Contact Us</h2>
+        <p>If you have any questions about this Privacy Policy, please contact us at privacy@valora.live.</p>
+    </div>
+</body>
+</html>

@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>VALORA — Live Video Chat</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="stylesheet" href="/valora-tokens.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --vl-chat-header-h: 60px;
+            --vl-chat-dock-h: 64px;
+        }
+
+        html, body {
+            height: 100%;
+            height: 100dvh;
+            margin: 0;
+            padding: 0;
+            background-color: var(--vl-bg-base);
+            color: var(--vl-text-primary);
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            width: 100vw;
+            box-sizing: border-box;
+        }
+
+        /* Top Bar */
+        .chat-topbar {
+            height: var(--vl-chat-header-h);
+            background: rgba(8, 8, 10, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--vl-border-subtle);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            z-index: 100;
+            flex-shrink: 0;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        @media (min-width: 640px) {
+            .chat-topbar {
+                padding: 0 24px;
+            }
+        }
+
+        .chat-topbar-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            min-width: 0;
+        }
+
+        .chat-topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+
+        /* Main Video + Chat Area */
+        .chat-workspace {
+            flex: 1;
+            position: relative;
+            display: flex;
+            width: 100%;
+            height: calc(100dvh - var(--vl-chat-header-h));
+            overflow: hidden;
+            background-color: var(--vl-bg-base);
+            box-sizing: border-box;
+        }
+
+        .video-main {
+            flex: 1;
+            height: 100%;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            padding: 12px;
+            gap: 12px;
+            overflow: hidden;
+            box-sizing: border-box;
+            transition: padding-right 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @media (min-width: 768px) {
+            .video-main {
+                padding: 16px;
+                gap: 16px;
+            }
+            .video-main.chat-active {
+                padding-right: calc(360px + 16px);
+            }
+        }
+
+        @media (min-width: 1280px) {
+            .video-main.chat-active {
+                padding-right: calc(400px + 16px);
+            }
+        }
+
+        /* Video Stage Grid */
+        .video-grid {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 10px;
+            width: 100%;
+            height: 100%;
+            min-height: 0;
+            box-sizing: border-box;
+        }
+
+        @media (min-width: 768px) {
+            .video-grid {
+                grid-template-columns: 1fr 1fr;
+                grid-template-rows: 1fr;
+                gap: 16px;
+            }
+        }
+
+        .video-box {
+            position: relative;
+            background: #0d0d12;
+            border-radius: var(--vl-radius-lg);
+            border: 1px solid var(--vl-border-subtle);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            min-height: 0;
+            box-sizing: border-box;
+            box-shadow: var(--vl-shadow-sm);
+        }
+
+        .video-box video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 2;
+            background: transparent;
+        }
+
+        #localVideo {
+            transform: scaleX(-1);
+        }
+
+        /* Avatar Placeholder behind video */
+        .video-placeholder {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            z-index: 1;
+            background: radial-gradient(circle at center, #16161f 0%, #0d0d12 100%);
+            user-select: none;
+        }
+
+        .video-avatar-circle {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #1e1e28, #121218);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #94a3b8;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        @media (min-width: 640px) {
+            .video-avatar-circle {
+                width: 80px;
+                height: 80px;
+            }
+        }
+
+        .video-avatar-circle svg {
+            width: 32px;
+            height: 32px;
+        }
+
+        @media (min-width: 640px) {
+            .video-avatar-circle svg {
+                width: 40px;
+                height: 40px;
+            }
+        }
+
+        /* Name / Role Tags */
+        .panel-tag {
+            position: absolute;
+            bottom: 12px;
+            left: 12px;
+            background: rgba(8, 8, 10, 0.75);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: 5px 12px;
+            border-radius: var(--vl-radius-sm);
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--vl-text-primary);
+            border: 1px solid var(--vl-border-subtle);
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            user-select: none;
+            max-width: calc(100% - 24px);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* Video Overlay Status */
+        .status-overlay {
+            position: absolute;
+            top: 14px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(10, 10, 14, 0.88);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            padding: 6px 16px;
+            border-radius: var(--vl-radius-full);
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--vl-text-secondary);
+            border: 1px solid var(--vl-border-medium);
+            z-index: 20;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+            pointer-events: none;
+            max-width: 90%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Floating Controls Dock */
+        .controls-dock-wrapper {
+            position: absolute;
+            bottom: calc(12px + env(safe-area-inset-bottom));
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 40;
+            width: auto;
+            max-width: calc(100% - 24px);
+            pointer-events: none;
+        }
+
+        .controls-dock {
+            pointer-events: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: rgba(14, 14, 18, 0.88);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 8px 12px;
+            border-radius: var(--vl-radius-full);
+            border: 1px solid var(--vl-border-medium);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7), 0 0 20px rgba(239, 68, 68, 0.05);
+            box-sizing: border-box;
+        }
+
+        @media (max-width: 480px) {
+            .controls-dock {
+                padding: 6px 8px;
+                gap: 5px;
+            }
+        }
+
+        .dock-btn {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--vl-border-subtle);
+            color: var(--vl-text-secondary);
+            cursor: pointer;
+            transition: var(--vl-transition-base);
+            flex-shrink: 0;
+            padding: 0;
+        }
+
+        .dock-btn:hover {
+            color: var(--vl-text-primary);
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--vl-border-medium);
+            transform: translateY(-1px);
+        }
+
+        .dock-btn:active {
+            transform: scale(0.95);
+        }
+
+        .dock-btn.is-muted, .dock-btn.is-off {
+            background: rgba(239, 68, 68, 0.15);
+            border-color: var(--vl-accent-border);
+            color: #f87171;
+        }
+
+        @media (max-width: 480px) {
+            .dock-btn {
+                width: 36px;
+                height: 36px;
+            }
+            .dock-btn svg {
+                width: 17px;
+                height: 17px;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .dock-btn {
+                width: 32px;
+                height: 32px;
+            }
+            .dock-btn svg {
+                width: 15px;
+                height: 15px;
+            }
+        }
+
+        .dock-btn-next {
+            background: var(--vl-accent);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 0 18px;
+            height: 42px;
+            border-radius: var(--vl-radius-full);
+            font-size: 0.875rem;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            box-shadow: var(--vl-shadow-glow);
+            transition: var(--vl-transition-base);
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .dock-btn-next:hover {
+            background: var(--vl-accent-hover);
+            box-shadow: var(--vl-shadow-glow-lg);
+            transform: translateY(-1px);
+        }
+
+        .dock-btn-next:active {
+            transform: scale(0.97);
+        }
+
+        @media (max-width: 480px) {
+            .dock-btn-next {
+                height: 36px;
+                padding: 0 12px;
+                font-size: 0.8125rem;
+                gap: 4px;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .dock-btn-next {
+                height: 32px;
+                padding: 0 8px;
+                font-size: 0.75rem;
+            }
+        }
+
+        /* Slide-over Live Chat Panel */
+        #chat-panel {
+            position: fixed;
+            top: var(--vl-chat-header-h);
+            right: -100%;
+            width: 100%;
+            height: calc(100dvh - var(--vl-chat-header-h));
+            background: #0e0e12;
+            z-index: 150;
+            display: flex;
+            flex-direction: column;
+            transition: right 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+            border-left: 1px solid var(--vl-border-subtle);
+            box-shadow: -10px 0 30px rgba(0, 0, 0, 0.5);
+            box-sizing: border-box;
+        }
+
+        #chat-panel.active {
+            right: 0;
+        }
+
+        @media (min-width: 768px) {
+            #chat-panel {
+                width: 360px;
+                right: -360px;
+            }
+        }
+
+        @media (min-width: 1280px) {
+            #chat-panel {
+                width: 400px;
+                right: -400px;
+            }
+        }
+
+        .chat-panel-header {
+            padding: 14px 18px;
+            border-bottom: 1px solid var(--vl-border-subtle);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(14, 14, 18, 0.9);
+            flex-shrink: 0;
+        }
+
+        #chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            box-sizing: border-box;
+            background: #0a0a0e;
+        }
+
+        .chat-msg {
+            max-width: 84%;
+            padding: 9px 14px;
+            font-size: 0.875rem;
+            line-height: 1.45;
+            word-break: break-word;
+            overflow-wrap: anywhere;
+            box-sizing: border-box;
+            border-radius: var(--vl-radius-md);
+            animation: vlMsgSlide 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes vlMsgSlide {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .chat-msg.sent {
+            align-self: flex-end;
+            background: var(--vl-accent);
+            color: #ffffff;
+            border-bottom-right-radius: 4px;
+            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.25);
+        }
+
+        .chat-msg.received {
+            align-self: flex-start;
+            background: #181822;
+            color: #f1f5f9;
+            border-bottom-left-radius: 4px;
+            border: 1px solid var(--vl-border-subtle);
+        }
+
+        .chat-empty-state {
+            margin: auto;
+            text-align: center;
+            color: var(--vl-text-muted);
+            font-size: 0.8125rem;
+            padding: 24px;
+        }
+
+        .chat-input-row {
+            padding: 12px 16px calc(12px + env(safe-area-inset-bottom)) 16px;
+            background: #0e0e12;
+            border-top: 1px solid var(--vl-border-subtle);
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-shrink: 0;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .chat-text-input {
+            flex: 1;
+            min-width: 0;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--vl-border-subtle);
+            border-radius: var(--vl-radius-full);
+            padding: 10px 16px;
+            color: #ffffff;
+            font-size: 0.875rem;
+            outline: none;
+            transition: var(--vl-transition-base);
+            box-sizing: border-box;
+        }
+
+        .chat-text-input:focus {
+            border-color: var(--vl-accent);
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 0 2px var(--vl-accent-subtle);
+        }
+
+        .chat-text-input:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .chat-send-action-btn {
+            background: var(--vl-accent);
+            color: white;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--vl-transition-base);
+            flex-shrink: 0;
+            border: none;
+        }
+
+        .chat-send-action-btn:hover:not(:disabled) {
+            background: var(--vl-accent-hover);
+            transform: scale(1.05);
+        }
+
+        .chat-send-action-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            background: #27272a;
+        }
+
+        /* Modals & Overlays */
+        .vl-modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(4, 4, 6, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            z-index: 300;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            box-sizing: border-box;
+        }
+
+        .vl-modal-card {
+            background: #111116;
+            border: 1px solid var(--vl-border-medium);
+            border-radius: var(--vl-radius-xl);
+            padding: 28px 24px;
+            max-width: 440px;
+            width: 100%;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 30px rgba(239, 68, 68, 0.08);
+            position: relative;
+            overflow: hidden;
+            box-sizing: border-box;
+        }
+
+        @media (min-width: 480px) {
+            .vl-modal-card {
+                padding: 32px;
+            }
+        }
+
+        .vl-input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--vl-border-subtle);
+            border-radius: var(--vl-radius-md);
+            padding: 12px 16px;
+            color: #ffffff;
+            font-size: 0.9375rem;
+            outline: none;
+            transition: var(--vl-transition-base);
+            box-sizing: border-box;
+        }
+
+        .vl-input:focus {
+            border-color: var(--vl-accent);
+            background: rgba(255, 255, 255, 0.07);
+            box-shadow: 0 0 0 3px var(--vl-accent-subtle);
+        }
+
+        .gender-btn {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--vl-border-subtle);
+            padding: 12px;
+            border-radius: var(--vl-radius-md);
+            color: var(--vl-text-secondary);
+            font-weight: 600;
+            font-size: 0.875rem;
+            transition: var(--vl-transition-base);
+            cursor: pointer;
+            text-align: center;
+            user-select: none;
+        }
+
+        .gender-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: #ffffff;
+        }
+
+        .gender-btn.selected {
+            background: var(--vl-accent-subtle);
+            border-color: var(--vl-accent);
+            color: #ffffff;
+            box-shadow: 0 0 12px var(--vl-accent-glow);
+        }
+
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            user-select: none;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: var(--vl-radius-md);
+            border: 1px solid var(--vl-border-subtle);
+            transition: var(--vl-transition-base);
+        }
+
+        .checkbox-container:hover {
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        .custom-checkbox {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.25);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--vl-transition-base);
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .custom-checkbox::after {
+            content: '';
+            position: absolute;
+            width: 5px;
+            height: 10px;
+            border: solid white;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg) scale(0);
+            transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s;
+            opacity: 0;
+            top: 2px;
+        }
+
+        .checkbox-container input:checked + .custom-checkbox {
+            background: var(--vl-accent);
+            border-color: var(--vl-accent);
+            box-shadow: 0 0 10px var(--vl-accent-glow);
+        }
+
+        .checkbox-container input:checked + .custom-checkbox::after {
+            transform: rotate(45deg) scale(1);
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Top Navigation Bar -->
+    <header class="chat-topbar">
+        <div class="chat-topbar-left">
+            <a href="/" class="vl-wordmark" aria-label="VALORA Home">
+                VALORA<span class="vl-wordmark-dot"></span>
+            </a>
+        </div>
+        <div class="chat-topbar-right">
+            <button id="header-report-btn" class="vl-btn vl-btn-ghost text-xs py-1.5 px-3" style="gap: 5px; font-size: 0.8125rem;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-red-400"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+                <span class="hidden sm:inline">Report</span>
+            </button>
+            <a href="/" class="vl-btn vl-btn-secondary text-xs py-1.5 px-3" style="font-size: 0.8125rem;">
+                Leave
+            </a>
+        </div>
+    </header>
+
+    <!-- Chat & Video Workspace -->
+    <div class="chat-workspace">
+        <main class="video-main">
+            <!-- Video Grid -->
+            <div class="video-grid">
+                <!-- Stranger Video Panel -->
+                <div class="video-box remote-video-box">
+                    <div class="video-placeholder">
+                        <div class="video-avatar-circle">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        </div>
+                    </div>
+                    <div id="status" class="status-overlay">Waiting for stranger...</div>
+                    <div class="panel-tag" id="remote-label">Stranger</div>
+                    <video id="remoteVideo" autoplay playsinline></video>
+                </div>
+
+                <!-- Local Video Panel (You) -->
+                <div class="video-box local-video-box">
+                    <div class="video-placeholder">
+                        <div class="video-avatar-circle">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        </div>
+                    </div>
+                    <div class="panel-tag" id="local-label">You</div>
+                    <video id="localVideo" autoplay playsinline muted></video>
+                </div>
+            </div>
+
+            <!-- Floating Controls Dock -->
+            <div class="controls-dock-wrapper">
+                <div class="controls-dock">
+                    <!-- Microphone Toggle -->
+                    <button id="mic-btn" class="dock-btn" title="Mute / Unmute Microphone" aria-label="Microphone">
+                        <svg id="mic-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
+                    </button>
+
+                    <!-- Camera Video Toggle -->
+                    <button id="cam-btn" class="dock-btn" title="Enable / Disable Camera" aria-label="Camera">
+                        <svg id="cam-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 8-6 4 6 4V8Z"/><rect width="14" height="12" x="2" y="6" rx="2" ry="2"/></svg>
+                    </button>
+
+                    <!-- Camera Flip Button -->
+                    <button id="flip-btn" class="dock-btn" title="Switch Camera" aria-label="Flip Camera">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M21 21v-5h-5"/></svg>
+                    </button>
+
+                    <!-- Next Partner Primary Action -->
+                    <button id="next-btn" class="dock-btn-next" title="Find next person">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" x2="19" y1="5" y2="19"/></svg>
+                        <span>Next Partner</span>
+                    </button>
+
+                    <!-- Live Chat Toggle -->
+                    <button id="chat-toggle-btn" class="dock-btn" title="Toggle Live Chat" aria-label="Chat">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 21 1.9-5.7a8.5 8.5 0 1 1 3.8 3.8z"/></svg>
+                    </button>
+                </div>
+            </div>
+        </main>
+
+        <!-- Slide-over Live Chat Panel -->
+        <aside id="chat-panel">
+            <div class="chat-panel-header">
+                <div class="flex items-center gap-2">
+                    <span class="font-bold text-sm text-white">Live Chat</span>
+                    <span class="vl-badge vl-badge-accent" style="font-size: 9px; padding: 2px 6px;">Real-time</span>
+                </div>
+                <button type="button" class="vl-btn-icon" id="close-chat" style="width: 32px; height: 32px;" aria-label="Close Chat">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                </button>
+            </div>
+            <div id="chat-messages">
+                <div class="chat-empty-state">
+                    Messages are private and cleared when moving to the next partner.
+                </div>
+            </div>
+            <div class="chat-input-row">
+                <input type="text" id="chat-input" class="chat-text-input" placeholder="Type a message..." disabled autocomplete="off">
+                <button type="button" id="chat-send-btn" class="chat-send-action-btn" disabled aria-label="Send Message">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" x2="11" y1="2" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                </button>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Start Overlay Modal -->
+    <div id="start-overlay" class="vl-modal-backdrop">
+        <div class="vl-modal-card text-center">
+            <div class="inline-flex items-center justify-center w-14 h-14 rounded-full bg-red-500/10 text-red-500 mb-5 border border-red-500/20">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect width="14" height="14" x="1" y="5" rx="2" ry="2"/></svg>
+            </div>
+            <h1 class="text-3xl font-black mb-2 tracking-tight text-white">Start Video Chat</h1>
+            <p class="text-gray-400 mb-6 text-sm">Connect instantly with real people worldwide with high-definition audio & video.</p>
+            <div class="bg-zinc-900/80 p-4 rounded-xl mb-6 border border-white/5 text-left flex items-start gap-3">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-amber-400 shrink-0 mt-0.5"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
+                <p class="text-xs text-gray-300 leading-relaxed">Camera & microphone permissions are required to participate in live matchmaking.</p>
+            </div>
+            <button id="start-btn" class="vl-btn vl-btn-primary w-full py-3.5 text-base font-bold shadow-lg shadow-red-500/20">
+                Enter Room
+            </button>
+        </div>
+    </div>
+
+    <!-- Age Gate Modal -->
+    <div id="age-gate-modal" class="vl-modal-backdrop hidden">
+        <div class="vl-modal-card">
+            <div class="text-center mb-6">
+                <h2 class="text-2xl font-black mb-1 text-white tracking-tight">Identity & Verification</h2>
+                <p class="text-gray-400 text-xs">Please configure your profile before connecting.</p>
+            </div>
+            
+            <form id="age-gate-form" onsubmit="return false;" class="space-y-4">
+                <div>
+                    <label class="block text-[11px] text-gray-400 uppercase tracking-wider font-bold mb-1.5 ml-1">Your Name</label>
+                    <input type="text" id="modal-name" class="vl-input" placeholder="Display name" required autocomplete="name">
+                </div>
+
+                <div>
+                    <label class="block text-[11px] text-gray-400 uppercase tracking-wider font-bold mb-1.5 ml-1">Age Requirement</label>
+                    <label class="checkbox-container">
+                        <input type="checkbox" id="modal-18-confirm" class="hidden" required>
+                        <div class="custom-checkbox"></div>
+                        <span class="text-xs text-gray-300 font-medium flex-1">I confirm that I am 18 years or older</span>
+                        <span class="vl-badge vl-badge-amber">18+</span>
+                    </label>
+                </div>
+
+                <div>
+                    <label class="block text-[11px] text-gray-400 uppercase tracking-wider font-bold mb-1.5 ml-1">Gender</label>
+                    <div class="flex gap-3">
+                        <div class="gender-btn" data-gender="male" id="gender-male">Male</div>
+                        <div class="gender-btn" data-gender="female" id="gender-female">Female</div>
+                    </div>
+                    <input type="hidden" id="modal-gender" required>
+                </div>
+
+                <div id="modal-error" class="text-red-400 text-xs text-center font-medium hidden"></div>
+                
+                <button type="submit" id="modal-submit" class="vl-btn vl-btn-primary w-full py-3 mt-2 font-bold disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                    Continue to Chat
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Report Modal -->
+    <div id="report-modal" class="vl-modal-backdrop hidden">
+        <div class="vl-modal-card">
+            <div id="report-form-container">
+                <div class="text-center mb-5">
+                    <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-red-500/10 text-red-500 mb-3 border border-red-500/20">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+                    </div>
+                    <h2 class="text-xl font-black mb-1 text-white">Report User</h2>
+                    <p class="text-gray-400 text-xs">Help us keep VALORA safe and respectful.</p>
+                </div>
+                
+                <form id="report-form" onsubmit="return false;" class="space-y-3.5">
+                    <div>
+                        <label class="block text-[11px] text-gray-400 uppercase tracking-wider font-bold mb-1 ml-1">Your Email</label>
+                        <input type="email" id="report-email" class="vl-input text-sm py-2.5" placeholder="Enter your email" required autocomplete="email">
+                    </div>
+
+                    <div>
+                        <label class="block text-[11px] text-gray-400 uppercase tracking-wider font-bold mb-1 ml-1">Reason</label>
+                        <select id="report-reason" class="vl-input text-sm py-2.5 bg-zinc-900" required>
+                            <option value="" disabled selected hidden>Select a violation reason</option>
+                            <option value="Nudity" class="bg-zinc-900">Inappropriate Content / Nudity</option>
+                            <option value="Abuse" class="bg-zinc-900">Harassment or Abuse</option>
+                            <option value="Spam" class="bg-zinc-900">Spam or Commercial Bot</option>
+                            <option value="Fake" class="bg-zinc-900">Underage or Impersonation</option>
+                            <option value="Other" class="bg-zinc-900">Other Violation</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-[11px] text-gray-400 uppercase tracking-wider font-bold mb-1 ml-1">Message (Optional)</label>
+                        <textarea id="report-message" class="vl-input text-sm py-2.5 resize-none h-20" placeholder="Describe the incident..."></textarea>
+                    </div>
+
+                    <div id="report-error" class="text-red-400 text-xs text-center font-medium hidden"></div>
+                    
+                    <div class="flex gap-2.5 pt-2">
+                        <button type="button" id="report-cancel-btn" class="vl-btn vl-btn-secondary flex-1 py-2.5 text-sm">Cancel</button>
+                        <button type="submit" id="report-submit-btn" class="vl-btn vl-btn-primary flex-1 py-2.5 text-sm font-bold">Submit</button>
+                    </div>
+                </form>
+            </div>
+
+            <div id="report-success-container" class="hidden text-center py-4">
+                <div class="w-14 h-14 bg-emerald-500/10 text-emerald-400 rounded-full flex items-center justify-center mx-auto mb-3 border border-emerald-500/20">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                </div>
+                <h3 class="text-lg font-bold text-white mb-1">Report Submitted</h3>
+                <p class="text-gray-400 text-xs mb-5">Your report has been logged for moderator review. Finding a new partner...</p>
+                <button type="button" id="report-close-btn" class="vl-btn vl-btn-secondary w-full py-2.5 text-sm">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="/socket.io/socket.io.js"></script>
+    <script type="module" src="script.js"></script>
+</body>
+</html>
+

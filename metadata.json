@@ -1,0 +1,11 @@
+{
+  "name": "VALORA",
+  "description": "A modern, premium random video chat application with a clean dark UI.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
