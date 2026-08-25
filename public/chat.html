@@ -207,7 +207,7 @@
         /* Name / Role Tags */
         .panel-tag {
             position: absolute;
-            bottom: 12px;
+            top: 12px;
             left: 12px;
             background: rgba(8, 8, 10, 0.75);
             backdrop-filter: blur(10px);
@@ -232,7 +232,7 @@
         /* Video Overlay Status */
         .status-overlay {
             position: absolute;
-            top: 14px;
+            top: calc(50% + 46px);
             left: 50%;
             transform: translateX(-50%);
             background: rgba(10, 10, 14, 0.88);
@@ -256,10 +256,16 @@
             text-overflow: ellipsis;
         }
 
+        @media (min-width: 640px) {
+            .status-overlay {
+                top: calc(50% + 54px);
+            }
+        }
+
         /* Floating Controls Dock */
         .controls-dock-wrapper {
             position: absolute;
-            bottom: calc(12px + env(safe-area-inset-bottom));
+            bottom: calc(20px + env(safe-area-inset-bottom));
             left: 50%;
             transform: translateX(-50%);
             z-index: 40;
@@ -909,7 +915,7 @@
     </div>
 
     <script type="module" src="/socket.io/socket.io.js"></script>
-    <script type="module" src="script.js"></script>
+    <script type="module" src="/script.js"></script>
 </body>
 </html>
 

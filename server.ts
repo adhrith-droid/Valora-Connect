@@ -295,6 +295,43 @@ app.post("/admin/ban", requireAdmin, async (req, res) => {
   }
 });
 
+// Clean URL Canonical Redirection Middleware for public pages
+app.use((req, res, next) => {
+  const urlPath = req.path;
+  const queryString = req.url.includes('?') ? req.url.slice(req.url.indexOf('?')) : '';
+
+  if (urlPath === '/index.html') {
+    return res.redirect(301, '/' + queryString);
+  }
+  if (urlPath === '/chat.html') {
+    return res.redirect(301, '/chat' + queryString);
+  }
+  if (urlPath === '/privacy.html') {
+    return res.redirect(301, '/privacy' + queryString);
+  }
+  if (urlPath === '/terms.html') {
+    return res.redirect(301, '/terms' + queryString);
+  }
+  next();
+});
+
+// Clean Public Page Routes
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public/index.html"));
+});
+
+app.get("/chat", (req, res) => {
+  res.sendFile(path.join(__dirname, "public/chat.html"));
+});
+
+app.get("/privacy", (req, res) => {
+  res.sendFile(path.join(__dirname, "public/privacy.html"));
+});
+
+app.get("/terms", (req, res) => {
+  res.sendFile(path.join(__dirname, "public/terms.html"));
+});
+
 // Serve static files from the 'public' directory
 app.use(express.static(path.join(__dirname, "public")));
 
