@@ -7,8 +7,6 @@ const config = {
     ]
 };
 
-const startOverlay = document.getElementById('start-overlay');
-const startBtn = document.getElementById('start-btn');
 const nextBtn = document.getElementById('next-btn');
 const reportBtn = document.getElementById('report-btn');
 const headerReportBtn = document.getElementById('header-report-btn');
@@ -84,7 +82,7 @@ function updateStatus(state, message) {
     }
 }
 
-// Check if user is already in session
+// Check if user is already in session and initialize
 function initSession() {
     const storedUser = sessionStorage.getItem('valora_user');
     if (storedUser) {
@@ -92,9 +90,16 @@ function initSession() {
             const userData = JSON.parse(storedUser);
             window.userName = userData.name;
             if (localLabel) localLabel.innerText = window.userName;
+            startMedia();
+            return;
         } catch (e) {
             sessionStorage.removeItem('valora_user');
         }
+    }
+    
+    // If not configured, show identity verification directly
+    if (ageGateModal) {
+        ageGateModal.classList.remove('hidden');
     }
 }
 
@@ -149,22 +154,10 @@ if (ageGateForm) {
     });
 }
 
-if (startBtn) {
-    startBtn.onclick = () => {
-        const storedUser = sessionStorage.getItem('valora_user');
-        if (storedUser) {
-            startMedia();
-        } else {
-            if (ageGateModal) ageGateModal.classList.remove('hidden');
-        }
-    };
-}
-
 async function startMedia() {
     try {
         localStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: true });
         if (localVideo) localVideo.srcObject = localStream;
-        if (startOverlay) startOverlay.style.display = 'none';
         if (nextBtn) nextBtn.style.display = 'inline-flex';
         if (chatToggleBtn) chatToggleBtn.style.display = 'inline-flex';
         findPartner();
