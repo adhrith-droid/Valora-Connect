@@ -186,6 +186,11 @@ body {
     .vl-logo-svg-hero {
         height: 52px;
     }
+    .vl-logo-svg,
+    .vl-logo-img {
+        height: 24px;
+        max-height: 24px;
+    }
 }
 
 @media (max-width: 480px) {

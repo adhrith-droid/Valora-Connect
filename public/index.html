@@ -70,18 +70,59 @@
 
         /* Hero Section */
         .hero {
-            min-height: calc(100vh - var(--vl-header-height));
+            min-height: calc(92vh - var(--vl-header-height));
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             text-align: center;
-            padding: 40px 24px;
+            padding: calc(var(--vl-header-height) + 4px) 24px 60px;
             position: relative;
+            box-sizing: border-box;
         }
         
+        /* Hero 3D Video Element */
+        .hero-cube-wrap {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 260px;
+            height: 260px;
+            margin-top: -24px;
+            margin-bottom: -0.5rem;
+            pointer-events: none;
+            user-select: none;
+            z-index: 2;
+            animation: fadeIn 1s ease forwards;
+        }
+
+        .hero-cube-glow {
+            position: absolute;
+            width: 130%;
+            height: 130%;
+            background: radial-gradient(circle, rgba(239, 68, 68, 0.18) 0%, rgba(239, 68, 68, 0.05) 45%, transparent 70%);
+            border-radius: 50%;
+            filter: blur(28px);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .hero-cube-video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            mix-blend-mode: screen;
+            position: relative;
+            z-index: 1;
+            filter: contrast(1.08) brightness(1.03);
+            pointer-events: none;
+            -webkit-user-drag: none;
+        }
+
         .logo-container {
-            margin-bottom: 2rem;
+            margin-top: 0px;
+            margin-bottom: 1.75rem;
             animation: glowPulse 4s infinite alternate;
             padding: 0 16px;
             overflow: visible;
@@ -104,7 +145,35 @@
             overflow: visible;
         }
         @media (max-width: 768px) {
-            .valora-logo { font-size: 3.5rem; }
+            .hero {
+                min-height: auto;
+                padding-top: calc(var(--vl-header-height-mobile) + 4px);
+                padding-bottom: 48px;
+                padding-left: 20px;
+                padding-right: 20px;
+            }
+            .hero-cube-wrap {
+                width: 210px;
+                height: 210px;
+                margin-top: -16px;
+                margin-bottom: -0.5rem;
+            }
+            .logo-container {
+                margin-top: 0px;
+                margin-bottom: 1.25rem;
+            }
+            .valora-logo {
+                font-size: 3.5rem;
+            }
+            .tagline {
+                font-size: 1.4rem;
+                margin-bottom: 0.85rem;
+            }
+            .description {
+                font-size: 1rem;
+                margin-bottom: 2.25rem;
+                max-width: 90%;
+            }
         }
 
         .tagline {
@@ -790,20 +859,9 @@
                 </a>
                 <nav class="vl-nav-links" aria-label="Primary Navigation">
                     <a href="/" class="vl-nav-item active">Home</a>
-                    <a href="#" class="vl-nav-item vl-nav-placeholder" data-feature="Discover">
-                        Discover
-                        <span class="vl-nav-tag">Upcoming</span>
-                    </a>
-                    <a href="#" class="vl-nav-item vl-nav-placeholder" data-feature="Live Discovery">
-                        Live
-                        <span class="vl-badge vl-badge-live" style="font-size: 8px; padding: 2px 6px;">
-                            <span class="vl-dot-pulse"></span> Preview
-                        </span>
-                    </a>
-                    <a href="#" class="vl-nav-item vl-nav-placeholder" data-feature="Messages">
-                        Messages
-                        <span class="vl-nav-tag">Soon</span>
-                    </a>
+                    <a href="#" class="vl-nav-item vl-nav-placeholder" data-feature="Discover">Discover</a>
+                    <a href="#" class="vl-nav-item vl-nav-placeholder" data-feature="Live">Live</a>
+                    <a href="#" class="vl-nav-item vl-nav-placeholder" data-feature="Messages">Messages</a>
                 </nav>
             </div>
             
@@ -822,22 +880,10 @@
 
     <!-- Mobile Navigation Drawer -->
     <div id="vl-mobile-drawer" class="vl-mobile-drawer" aria-label="Mobile Navigation">
-        <a href="/" class="vl-mobile-nav-link active">
-            <span>Home</span>
-            <span class="vl-caption" style="color: var(--vl-accent);">Current</span>
-        </a>
-        <a href="#" class="vl-mobile-nav-link vl-nav-placeholder" data-feature="Discover">
-            <span>Discover</span>
-            <span class="vl-nav-tag">Upcoming</span>
-        </a>
-        <a href="#" class="vl-mobile-nav-link vl-nav-placeholder" data-feature="Live Discovery">
-            <span>Live Streams</span>
-            <span class="vl-badge vl-badge-live" style="font-size: 8px; padding: 2px 6px;">Preview</span>
-        </a>
-        <a href="#" class="vl-mobile-nav-link vl-nav-placeholder" data-feature="Messages">
-            <span>Messages</span>
-            <span class="vl-nav-tag">Soon</span>
-        </a>
+        <a href="/" class="vl-mobile-nav-link active">Home</a>
+        <a href="#" class="vl-mobile-nav-link vl-nav-placeholder" data-feature="Discover">Discover</a>
+        <a href="#" class="vl-mobile-nav-link vl-nav-placeholder" data-feature="Live">Live</a>
+        <a href="#" class="vl-mobile-nav-link vl-nav-placeholder" data-feature="Messages">Messages</a>
         <div style="padding-top: 8px; border-top: 1px solid var(--vl-border-subtle); margin-top: 4px;">
             <a href="/chat" class="vl-btn vl-btn-primary" style="width: 100%; text-align: center;">
                 Start Connecting
@@ -854,11 +900,26 @@
 
     <!-- Hero Section -->
     <section class="hero">
+        <div class="hero-cube-wrap" aria-hidden="true">
+            <div class="hero-cube-glow"></div>
+            <video 
+                class="hero-cube-video" 
+                src="https://cloud.ryntly.in/1000129050.webm" 
+                autoplay 
+                loop 
+                muted 
+                playsinline 
+                disablepictureinpicture 
+                disableremoteplayback
+                preload="auto"
+                tabindex="-1">
+            </video>
+        </div>
         <div class="logo-container">
             <h1 class="valora-logo">VALORA</h1>
         </div>
-        <h2 class="tagline">Meet Strangers. Connect Instantly.</h2>
-        <p class="description">Experience high-quality anonymous video chat with real people worldwide. No sign-ups, just instant connections.</p>
+        <h2 class="tagline">Next-Generation Stranger Video Chat.</h2>
+        <p class="description">Meet someone new, anywhere in the world.<br class="hidden sm:inline"> One tap. One real connection.</p>
         <a href="/chat" class="btn-enter">ENTER VALORA</a>
     </section>
 
@@ -1163,7 +1224,7 @@
             <span>© 2026 VALORA. All Rights Reserved.</span>
             <div style="display: flex; align-items: center; gap: 16px;">
                 <span class="vl-badge vl-badge-subtle" style="font-size: 10px;">18+ Age Restricted</span>
-                <span>Peer-to-Peer Encrypted</span>
+                <span>End-to-End Encrypted</span>
             </div>
         </div>
     </footer>
@@ -1171,6 +1232,18 @@
     <script>
         // Intersection Observer for scroll animations
         document.addEventListener('DOMContentLoaded', () => {
+            // Autoplay ensure for 3D hero video
+            const cubeVideo = document.querySelector('.hero-cube-video');
+            if (cubeVideo) {
+                cubeVideo.muted = true;
+                const playPromise = cubeVideo.play();
+                if (playPromise !== undefined) {
+                    playPromise.catch(() => {
+                        // User gesture or low power mode fallback
+                    });
+                }
+            }
+
             const reveals = document.querySelectorAll('.reveal');
             
             const revealOnScroll = new IntersectionObserver((entries, observer) => {
