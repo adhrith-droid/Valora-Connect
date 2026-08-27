@@ -141,7 +141,64 @@ body {
     color: var(--vl-text-muted);
 }
 
-/* VALORA Wordmark */
+/* VALORA Wordmark & Vector/Image Logo System */
+.vl-logo-link {
+    display: inline-flex;
+    align-items: center;
+    text-decoration: none;
+    user-select: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.vl-logo-link:hover {
+    opacity: 0.92;
+    transform: translateY(-1px);
+}
+
+.vl-logo-svg,
+.vl-logo-img {
+    height: 28px;
+    width: auto;
+    max-height: 28px;
+    object-fit: contain;
+    display: block;
+}
+
+.vl-logo-svg-lg,
+.vl-logo-img-lg {
+    height: 34px;
+    width: auto;
+    max-height: 34px;
+    object-fit: contain;
+    display: block;
+}
+
+.vl-logo-svg-hero {
+    height: 72px;
+    width: auto;
+    max-width: 92vw;
+    display: inline-block;
+    color: #ffffff;
+    filter: drop-shadow(0 0 30px rgba(239, 68, 68, 0.45));
+}
+
+@media (max-width: 768px) {
+    .vl-logo-svg-hero {
+        height: 52px;
+    }
+}
+
+@media (max-width: 480px) {
+    .vl-logo-svg-hero {
+        height: 40px;
+    }
+    .vl-logo-svg,
+    .vl-logo-img {
+        height: 24px;
+        max-height: 24px;
+    }
+}
+
 .vl-wordmark {
     font-size: 1.35rem;
     font-weight: 900;
