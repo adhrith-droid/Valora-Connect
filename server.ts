@@ -481,6 +481,14 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public/index.html"));
 });
 
+app.get("/sitemap.xml", (req, res) => {
+  res.type("application/xml").sendFile(path.join(__dirname, "public/sitemap.xml"));
+});
+
+app.get("/robots.txt", (req, res) => {
+  res.type("text/plain").sendFile(path.join(__dirname, "public/robots.txt"));
+});
+
 app.get("/chat", (req, res) => {
   res.sendFile(path.join(__dirname, "public/chat.html"));
 });
@@ -495,6 +503,11 @@ app.get("/terms", (req, res) => {
 
 // Serve static files from the 'public' directory
 app.use(express.static(path.join(__dirname, "public")));
+
+// Custom 404 Handler for all remaining unmatched routes
+app.use((req, res) => {
+  res.status(404).sendFile(path.join(__dirname, "public/404.html"));
+});
 
 // Matchmaking state
 let waitingUser: string | null = null;

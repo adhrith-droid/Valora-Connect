@@ -1,0 +1,19 @@
+User-agent: *
+Allow: /
+Allow: /privacy
+Allow: /terms
+Allow: /valora-tokens.css
+Allow: /favicon.svg
+Allow: /valora-logo.svg
+Allow: /script.js
+Allow: /valora-header.js
+Disallow: /admin/
+Disallow: /admin
+Disallow: /api/
+Disallow: /socket.io/
+Disallow: /chat
+Disallow: /chat.html
+Disallow: /404
+Disallow: /404.html
+
+Sitemap: https://ryntly.in/sitemap.xml

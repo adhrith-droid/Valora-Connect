@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 - Page Not Found | VALORA</title>
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="stylesheet" href="/valora-tokens.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --bg-color: var(--vl-bg-base);
+            --accent-color: var(--vl-accent);
+            --header-height: 64px;
+        }
+        body {
+            background-color: var(--bg-color);
+            color: #ffffff;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            min-height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+        .error-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 40px 24px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .error-code {
+            font-size: clamp(5rem, 12vw, 8rem);
+            font-weight: 900;
+            letter-spacing: -0.05em;
+            line-height: 1;
+            background: linear-gradient(180deg, #ffffff 0%, rgba(255, 255, 255, 0.2) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+        }
+        .error-title {
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: #ffffff;
+            margin-bottom: 12px;
+            letter-spacing: -0.02em;
+        }
+        .error-desc {
+            font-size: 1rem;
+            color: var(--vl-text-secondary);
+            line-height: 1.6;
+            margin-bottom: 32px;
+        }
+        .action-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            justify-content: center;
+        }
+        .btn-ghost {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 24px;
+            border-radius: var(--vl-radius-full);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--vl-border-subtle);
+            color: #ffffff;
+            font-weight: 600;
+            font-size: 0.9375rem;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+        .btn-ghost:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <header class="vl-header">
+        <div class="vl-header-container">
+            <div class="vl-header-left">
+                <a href="/" class="vl-wordmark" aria-label="VALORA Home">
+                    <span>VALORA</span><span class="vl-wordmark-dot"></span>
+                </a>
+            </div>
+            <div class="vl-header-right">
+                <a href="/chat" class="vl-btn vl-btn-primary vl-header-cta">
+                    Start Connecting
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="error-container">
+        <div class="error-code">404</div>
+        <h1 class="error-title">Page Not Found</h1>
+        <p class="error-desc">The page or route you are looking for does not exist, has been removed, or is temporarily unavailable.</p>
+        <div class="action-group">
+            <a href="/" class="vl-btn vl-btn-primary" style="padding: 12px 28px; font-size: 0.9375rem;">
+                Back to Home
+            </a>
+            <a href="/chat" class="btn-ghost">
+                Start Video Chat
+            </a>
+        </div>
+    </main>
+
+    <footer class="vl-footer" style="margin-top: auto;">
+        <div class="footer-bottom" style="border-top: 1px solid var(--vl-border-subtle); padding: 24px; justify-content: center;">
+            <span>© 2026 VALORA. All Rights Reserved.</span>
+        </div>
+    </footer>
+</body>
+</html>
