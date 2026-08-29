@@ -103,27 +103,37 @@ const databaseUrl = process.env.DATABASE_URL || process.env.DATABESE_URL;
 let pool: pg.Pool | null = null;
 let isNeonConnected = false;
 
-if (databaseUrl) {
+async function runDatabaseMigrations() {
+  if (!pool) return;
+  console.log("[Database Migration] Connecting to Neon PostgreSQL and verifying schema...");
   try {
-    pool = new Pool({
-      connectionString: databaseUrl,
-      ssl: {
-        rejectUnauthorized: false
-      }
-    });
-
-    // Initialize PostgreSQL Tables for Neon
-    pool.query(`
+    // 1. Ensure users table exists with base columns
+    await pool.query(`
       CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
-        google_id VARCHAR(128) UNIQUE NOT NULL,
-        email VARCHAR(255) UNIQUE NOT NULL,
-        name VARCHAR(255) NOT NULL,
+        google_id VARCHAR(128),
+        email VARCHAR(255),
+        name VARCHAR(255),
         avatar_url TEXT DEFAULT '',
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
         last_login_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
+    `);
 
+    // 2. Safe additive column migrations for existing users tables
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS google_id VARCHAR(128);`);
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS email VARCHAR(255);`);
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS name VARCHAR(255);`);
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_url TEXT DEFAULT '';`);
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP;`);
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP;`);
+
+    // 3. Safe unique indexes for google_id and email
+    await pool.query(`CREATE UNIQUE INDEX IF NOT EXISTS idx_users_google_id ON users (google_id) WHERE google_id IS NOT NULL;`);
+    await pool.query(`CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email ON users (email) WHERE email IS NOT NULL;`);
+
+    // 4. Ensure reports table and columns exist
+    await pool.query(`
       CREATE TABLE IF NOT EXISTS reports (
         id SERIAL PRIMARY KEY,
         report_id VARCHAR(64) UNIQUE,
@@ -135,7 +145,18 @@ if (databaseUrl) {
         reported_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
         status VARCHAR(64) DEFAULT 'pending'
       );
-      
+    `);
+    await pool.query(`ALTER TABLE reports ADD COLUMN IF NOT EXISTS report_id VARCHAR(64);`);
+    await pool.query(`ALTER TABLE reports ADD COLUMN IF NOT EXISTS reporter_email VARCHAR(255);`);
+    await pool.query(`ALTER TABLE reports ADD COLUMN IF NOT EXISTS reason VARCHAR(255);`);
+    await pool.query(`ALTER TABLE reports ADD COLUMN IF NOT EXISTS message TEXT DEFAULT '';`);
+    await pool.query(`ALTER TABLE reports ADD COLUMN IF NOT EXISTS reported_user_socket_id VARCHAR(128);`);
+    await pool.query(`ALTER TABLE reports ADD COLUMN IF NOT EXISTS reported_ip VARCHAR(128) DEFAULT 'unknown';`);
+    await pool.query(`ALTER TABLE reports ADD COLUMN IF NOT EXISTS reported_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP;`);
+    await pool.query(`ALTER TABLE reports ADD COLUMN IF NOT EXISTS status VARCHAR(64) DEFAULT 'pending';`);
+
+    // 5. Ensure bans table and columns exist
+    await pool.query(`
       CREATE TABLE IF NOT EXISTS bans (
         id SERIAL PRIMARY KEY,
         ban_id VARCHAR(64) UNIQUE,
@@ -143,19 +164,34 @@ if (databaseUrl) {
         reason VARCHAR(255) DEFAULT 'Admin Ban',
         banned_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
-    `)
-      .then(() => {
-        isNeonConnected = true;
-        console.log("Connected to Neon Database successfully and initialized users, reports, bans tables.");
-      })
-      .catch((err) => {
-        console.warn("Neon Database initialization warning, falling back to memory:", err.message);
-      });
+    `);
+    await pool.query(`ALTER TABLE bans ADD COLUMN IF NOT EXISTS ban_id VARCHAR(64);`);
+    await pool.query(`ALTER TABLE bans ADD COLUMN IF NOT EXISTS ip VARCHAR(128);`);
+    await pool.query(`ALTER TABLE bans ADD COLUMN IF NOT EXISTS reason VARCHAR(255) DEFAULT 'Admin Ban';`);
+    await pool.query(`ALTER TABLE bans ADD COLUMN IF NOT EXISTS banned_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP;`);
+
+    isNeonConnected = true;
+    console.log("[Database Migration] SUCCESS: All tables and columns (users.google_id, reports, bans) are verified and up to date in Neon PostgreSQL.");
   } catch (err: any) {
-    console.warn("Neon Database pool creation error:", err.message);
+    console.error("[Database Migration] ERROR: Failed to run database schema migrations:", err.message);
+  }
+}
+
+if (databaseUrl) {
+  try {
+    pool = new Pool({
+      connectionString: databaseUrl,
+      ssl: {
+        rejectUnauthorized: false
+      }
+    });
+
+    runDatabaseMigrations();
+  } catch (err: any) {
+    console.error("[Database] Pool initialization error:", err.message);
   }
 } else {
-  console.log("DATABASE_URL not provided. Operating with in-memory moderation and user store.");
+  console.log("[Database] DATABASE_URL not provided. Running with in-memory stores for local preview.");
 }
 
 // Helper to check if an IP is banned
@@ -628,33 +664,46 @@ app.get("/api/auth/google/callback", async (req, res) => {
 
     let authUser: AuthUser;
 
-    if (isNeonConnected && pool) {
-      // Check if user already exists
-      const existingRes = await pool.query(
-        "SELECT id, google_id, email, name, avatar_url, created_at, last_login_at FROM users WHERE google_id = $1 OR email = $2 LIMIT 1",
-        [googleId, email]
-      );
+    if (pool) {
+      try {
+        // Query users table for existing record by google_id or email
+        const existingRes = await pool.query(
+          "SELECT id, google_id, email, name, avatar_url, created_at, last_login_at FROM users WHERE google_id = $1 OR email = $2 LIMIT 1",
+          [googleId, email]
+        );
 
-      if (existingRes.rows.length > 0) {
-        // User exists -> update last_login_at, name, avatar
-        const existing = existingRes.rows[0];
-        const updateRes = await pool.query(
-          "UPDATE users SET last_login_at = CURRENT_TIMESTAMP, name = COALESCE(NULLIF($1, ''), name), avatar_url = COALESCE(NULLIF($2, ''), avatar_url) WHERE id = $3 RETURNING id, google_id, email, name, avatar_url, created_at, last_login_at",
-          [name, avatarUrl, existing.id]
-        );
-        authUser = updateRes.rows[0];
-        console.log(`[Auth] Existing user authenticated: ${authUser.email} (ID: ${authUser.id})`);
-      } else {
-        // User does not exist -> create new user record in Neon PostgreSQL
-        const insertRes = await pool.query(
-          "INSERT INTO users (google_id, email, name, avatar_url, created_at, last_login_at) VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) RETURNING id, google_id, email, name, avatar_url, created_at, last_login_at",
-          [googleId, email, name, avatarUrl]
-        );
-        authUser = insertRes.rows[0];
-        console.log(`[Auth] New user registered in database: ${authUser.email} (ID: ${authUser.id})`);
+        if (existingRes.rows.length > 0) {
+          // Existing user -> Update last_login_at, ensure google_id is linked, update name and avatar
+          const existing = existingRes.rows[0];
+          const updateRes = await pool.query(
+            `UPDATE users 
+             SET last_login_at = CURRENT_TIMESTAMP, 
+                 google_id = COALESCE(google_id, $1), 
+                 name = COALESCE(NULLIF($2, ''), name), 
+                 avatar_url = COALESCE(NULLIF($3, ''), avatar_url) 
+             WHERE id = $4 
+             RETURNING id, google_id, email, name, avatar_url, created_at, last_login_at`,
+            [googleId, name, avatarUrl, existing.id]
+          );
+          authUser = updateRes.rows[0];
+          console.log(`[Auth] Existing user authenticated in PostgreSQL: ${authUser.email} (ID: ${authUser.id}, google_id: ${authUser.google_id})`);
+        } else {
+          // New user -> Insert new user record in Neon PostgreSQL
+          const insertRes = await pool.query(
+            `INSERT INTO users (google_id, email, name, avatar_url, created_at, last_login_at) 
+             VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) 
+             RETURNING id, google_id, email, name, avatar_url, created_at, last_login_at`,
+            [googleId, email, name, avatarUrl]
+          );
+          authUser = insertRes.rows[0];
+          console.log(`[Auth] New user registered in PostgreSQL: ${authUser.email} (ID: ${authUser.id}, google_id: ${authUser.google_id})`);
+        }
+      } catch (dbErr: any) {
+        console.error("[Auth] Database error in Google OAuth callback:", dbErr.message);
+        throw dbErr;
       }
     } else {
-      // In-memory fallback
+      // Local development fallback when DATABASE_URL is not set
       let memUser = inMemoryUsers.find(u => u.google_id === googleId || u.email === email);
       if (memUser) {
         memUser.last_login_at = new Date();
