@@ -11,7 +11,8 @@ const { Pool } = pg;
 
 export interface AuthUser {
   id: number | string;
-  google_id: string;
+  google_id?: string;
+  provider_user_id?: string;
   email: string;
   name: string;
   avatar_url: string;
@@ -113,10 +114,11 @@ async function runDatabaseMigrations() {
       CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
         google_id VARCHAR(128),
+        provider_user_id VARCHAR(128),
+        provider VARCHAR(64) DEFAULT 'google',
         email VARCHAR(255),
         name VARCHAR(255),
         avatar_url TEXT DEFAULT '',
-        provider VARCHAR(64) DEFAULT 'google',
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
         last_login_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
@@ -124,17 +126,21 @@ async function runDatabaseMigrations() {
 
     // 2. Safe additive column migrations for existing users tables
     await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS google_id VARCHAR(128);`);
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS provider_user_id VARCHAR(128);`);
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS provider VARCHAR(64) DEFAULT 'google';`);
     await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS email VARCHAR(255);`);
     await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS name VARCHAR(255);`);
     await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_url TEXT DEFAULT '';`);
-    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS provider VARCHAR(64) DEFAULT 'google';`);
     await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP;`);
     await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP;`);
 
-    // Ensure any existing rows with NULL provider are populated with default 'google'
+    // 3. Safe backfill for existing rows
     await pool.query(`UPDATE users SET provider = 'google' WHERE provider IS NULL;`);
+    await pool.query(`UPDATE users SET provider_user_id = google_id WHERE provider_user_id IS NULL AND google_id IS NOT NULL;`);
+    await pool.query(`UPDATE users SET google_id = provider_user_id WHERE google_id IS NULL AND provider_user_id IS NOT NULL;`);
 
-    // 3. Safe unique indexes for google_id and email
+    // 4. Safe unique indexes for provider_user_id, google_id, and email
+    await pool.query(`CREATE UNIQUE INDEX IF NOT EXISTS idx_users_provider_user ON users (provider, provider_user_id) WHERE provider_user_id IS NOT NULL;`);
     await pool.query(`CREATE UNIQUE INDEX IF NOT EXISTS idx_users_google_id ON users (google_id) WHERE google_id IS NOT NULL;`);
     await pool.query(`CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email ON users (email) WHERE email IS NOT NULL;`);
 
@@ -658,12 +664,26 @@ app.get("/api/auth/google/callback", async (req, res) => {
 
     const googleProfile = await userProfileRes.json() as any;
 
-    if (!userProfileRes.ok || !googleProfile.id || !googleProfile.email) {
-      console.error("[Auth] User profile retrieval failed:", googleProfile);
+    let googleSub = String(googleProfile.sub || googleProfile.id || "").trim();
+    if (!googleSub && tokenData.id_token) {
+      try {
+        const payloadBase64 = tokenData.id_token.split('.')[1];
+        if (payloadBase64) {
+          const decodedPayload = JSON.parse(Buffer.from(payloadBase64, 'base64').toString('utf8'));
+          if (decodedPayload && decodedPayload.sub) {
+            googleSub = String(decodedPayload.sub).trim();
+          }
+        }
+      } catch (jwtErr) {
+        // Fallback continues
+      }
+    }
+
+    if (!userProfileRes.ok || !googleSub || !googleProfile.email) {
+      console.error("[Auth] User profile retrieval failed or missing sub/email. Status:", userProfileRes.status);
       return res.redirect("/login?error=profile_fetch_failed");
     }
 
-    const googleId = String(googleProfile.id);
     const email = String(googleProfile.email).toLowerCase().trim();
     const name = googleProfile.name || googleProfile.given_name || email.split('@')[0] || "Valora User";
     const avatarUrl = googleProfile.picture || "";
@@ -672,38 +692,53 @@ app.get("/api/auth/google/callback", async (req, res) => {
 
     if (pool) {
       try {
-        // Query users table for existing record by google_id or email
+        // Query users table for existing record by provider + provider_user_id, google_id, or email
         const existingRes = await pool.query(
-          "SELECT id, google_id, email, name, avatar_url, provider, created_at, last_login_at FROM users WHERE google_id = $1 OR email = $2 LIMIT 1",
-          [googleId, email]
+          `SELECT id, google_id, provider_user_id, email, name, avatar_url, provider, created_at, last_login_at 
+           FROM users 
+           WHERE (provider = 'google' AND provider_user_id = $1) 
+              OR (google_id = $1) 
+              OR (email = $2) 
+           LIMIT 1`,
+          [googleSub, email]
         );
 
         if (existingRes.rows.length > 0) {
-          // Existing user -> Update last_login_at, ensure google_id and provider are linked, update name and avatar
+          // Existing user -> Update last_login_at, ensure google_id, provider_user_id, and provider are linked, update name and avatar
           const existing = existingRes.rows[0];
           const updateRes = await pool.query(
             `UPDATE users 
              SET last_login_at = CURRENT_TIMESTAMP, 
+                 provider_user_id = COALESCE(provider_user_id, $1), 
                  google_id = COALESCE(google_id, $1), 
+                 provider = COALESCE(provider, 'google'), 
                  name = COALESCE(NULLIF($2, ''), name), 
-                 avatar_url = COALESCE(NULLIF($3, ''), avatar_url),
-                 provider = COALESCE(provider, 'google')
+                 avatar_url = COALESCE(NULLIF($3, ''), avatar_url) 
              WHERE id = $4 
-             RETURNING id, google_id, email, name, avatar_url, provider, created_at, last_login_at`,
-            [googleId, name, avatarUrl, existing.id]
+             RETURNING id, google_id, provider_user_id, email, name, avatar_url, provider, created_at, last_login_at`,
+            [googleSub, name, avatarUrl, existing.id]
           );
           authUser = updateRes.rows[0];
-          console.log(`[Auth] Existing user authenticated in PostgreSQL: ${authUser.email} (ID: ${authUser.id}, provider: ${authUser.provider || 'google'})`);
+          console.log(`[Auth] Existing user authenticated in PostgreSQL: ${authUser.email} (ID: ${authUser.id}, provider: ${authUser.provider || 'google'}, provider_user_id: ${authUser.provider_user_id || googleSub})`);
         } else {
-          // New user -> Insert new user record in Neon PostgreSQL with provider explicitly set to 'google'
+          // New user -> Insert new user record in Neon PostgreSQL with all required NOT NULL columns explicitly provided
           const insertRes = await pool.query(
-            `INSERT INTO users (google_id, email, name, avatar_url, provider, created_at, last_login_at) 
-             VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) 
-             RETURNING id, google_id, email, name, avatar_url, provider, created_at, last_login_at`,
-            [googleId, email, name, avatarUrl, "google"]
+            `INSERT INTO users (
+               google_id, 
+               provider_user_id, 
+               provider, 
+               email, 
+               name, 
+               avatar_url, 
+               created_at, 
+               last_login_at
+             ) 
+             VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) 
+             RETURNING id, google_id, provider_user_id, email, name, avatar_url, provider, created_at, last_login_at`,
+            [googleSub, googleSub, "google", email, name, avatarUrl]
           );
           authUser = insertRes.rows[0];
-          console.log(`[Auth] New user registered in PostgreSQL: ${authUser.email} (ID: ${authUser.id}, provider: ${authUser.provider})`);
+          console.log(`[Auth] New user registered in PostgreSQL: ${authUser.email} (ID: ${authUser.id}, provider: ${authUser.provider}, provider_user_id: ${authUser.provider_user_id})`);
         }
       } catch (dbErr: any) {
         console.error(`[Auth] PostgreSQL operation failed during Google OAuth user sync for email=${email}: ${dbErr.message}`);
@@ -711,18 +746,25 @@ app.get("/api/auth/google/callback", async (req, res) => {
       }
     } else {
       // Local development fallback when DATABASE_URL is not set
-      let memUser = inMemoryUsers.find(u => u.google_id === googleId || u.email === email);
+      let memUser = inMemoryUsers.find(u => 
+        (u.provider === 'google' && u.provider_user_id === googleSub) || 
+        u.google_id === googleSub || 
+        u.email === email
+      );
       if (memUser) {
         memUser.last_login_at = new Date();
         if (name) memUser.name = name;
         if (avatarUrl) memUser.avatar_url = avatarUrl;
         if (!memUser.provider) memUser.provider = "google";
+        if (!memUser.provider_user_id) memUser.provider_user_id = googleSub;
+        if (!memUser.google_id) memUser.google_id = googleSub;
         authUser = memUser;
         console.log(`[Auth (in-memory)] Existing user logged in: ${authUser.email}`);
       } else {
         authUser = {
           id: inMemoryUsers.length + 1,
-          google_id: googleId,
+          google_id: googleSub,
+          provider_user_id: googleSub,
           email: email,
           name: name,
           avatar_url: avatarUrl,
@@ -738,7 +780,8 @@ app.get("/api/auth/google/callback", async (req, res) => {
     // Establish authenticated session
     req.session.user = {
       id: authUser.id,
-      google_id: authUser.google_id,
+      google_id: authUser.google_id || authUser.provider_user_id || googleSub,
+      provider_user_id: authUser.provider_user_id || authUser.google_id || googleSub,
       email: authUser.email,
       name: authUser.name,
       avatar_url: authUser.avatar_url,
