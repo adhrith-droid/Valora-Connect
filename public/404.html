@@ -96,12 +96,28 @@
                 </a>
             </div>
             <div class="vl-header-right">
-                <a href="/chat" class="vl-btn vl-btn-primary vl-header-cta">
+                <a href="/login" class="vl-btn vl-btn-ghost vl-header-login-btn" style="padding: 8px 14px; font-size: 0.875rem; font-weight: 600; color: #cbd5e1;">
+                    Log In
+                </a>
+                <a href="/login" class="vl-btn vl-btn-primary vl-header-cta" id="header-connect-btn">
                     Start Connecting
                 </a>
+                <button type="button" id="vl-mobile-toggle" class="vl-mobile-toggle" aria-label="Toggle Navigation Menu" aria-expanded="false">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/>
+                    </svg>
+                </button>
             </div>
         </div>
     </header>
+
+    <!-- Mobile Navigation Drawer -->
+    <div id="vl-mobile-drawer" class="vl-mobile-drawer" aria-label="Mobile Navigation">
+        <a href="/" class="vl-mobile-nav-link active">Home</a>
+        <a href="#" class="vl-mobile-nav-link vl-nav-placeholder" data-feature="Discover">Discover</a>
+        <a href="#" class="vl-mobile-nav-link vl-nav-placeholder" data-feature="Live">Live</a>
+        <a href="#" class="vl-mobile-nav-link vl-nav-placeholder" data-feature="Messages">Messages</a>
+    </div>
 
     <main class="error-container">
         <div class="error-code">404</div>
@@ -122,5 +138,6 @@
             <span>© 2026 VALORA. All Rights Reserved.</span>
         </div>
     </footer>
+    <script src="/valora-header.js?v=3.2" defer></script>
 </body>
 </html>

@@ -130,10 +130,25 @@
                 </nav>
             </div>
             <div class="vl-header-right">
+                <a href="/login" class="vl-btn vl-btn-ghost vl-header-login-btn" style="padding: 8px 14px; font-size: 0.875rem; font-weight: 600; color: #cbd5e1;">
+                    Log In
+                </a>
                 <a href="/login" class="vl-btn vl-btn-primary vl-header-cta" style="padding: 8px 18px; font-size: 0.875rem;">Start Connecting</a>
+                <button type="button" id="vl-mobile-toggle" class="vl-mobile-toggle" aria-label="Toggle Navigation Menu" aria-expanded="false">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/>
+                    </svg>
+                </button>
             </div>
         </div>
     </header>
+
+    <!-- Mobile Navigation Drawer -->
+    <div id="vl-mobile-drawer" class="vl-mobile-drawer" aria-label="Mobile Navigation">
+        <a href="/" class="vl-mobile-nav-link">Home</a>
+        <a href="/privacy" class="vl-mobile-nav-link">Privacy</a>
+        <a href="/terms" class="vl-mobile-nav-link active">Terms</a>
+    </div>
 
     <div class="content-container">
         <h1>Terms & Conditions</h1>
@@ -161,6 +176,6 @@
         <p>We reserve the right to modify these Terms at any time. Your continued use of VALORA after any such changes constitutes your acceptance of the new Terms.</p>
     </div>
 
-    <script src="/valora-header.js"></script>
+    <script src="/valora-header.js?v=3.2"></script>
 </body>
 </html>
