@@ -3,8 +3,6 @@
    Phase 2: Global UI Tokens, Typography, Buttons & Navigation System
    ========================================================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
-
 :root {
     /* Background Canvas Tokens */
     --vl-bg-base: #08080a;
@@ -14,31 +12,31 @@
     --vl-bg-glass: rgba(14, 14, 18, 0.78);
     --vl-bg-glass-elevated: rgba(22, 22, 28, 0.85);
 
-    /* VALORA Crimson Accent Tokens */
-    --vl-accent: #ef4444;
-    --vl-accent-hover: #dc2626;
-    --vl-accent-active: #b91c1c;
-    --vl-accent-glow: rgba(239, 68, 68, 0.28);
-    --vl-accent-subtle: rgba(239, 68, 68, 0.12);
-    --vl-accent-subtle-hover: rgba(239, 68, 68, 0.18);
-    --vl-accent-border: rgba(239, 68, 68, 0.35);
+    /* VALORA Crimson Accent Tokens (WCAG AA Compliant 4.7+:1 with white text) */
+    --vl-accent: #dc2626;
+    --vl-accent-hover: #b91c1c;
+    --vl-accent-active: #991b1b;
+    --vl-accent-glow: rgba(220, 38, 38, 0.32);
+    --vl-accent-subtle: rgba(220, 38, 38, 0.14);
+    --vl-accent-subtle-hover: rgba(220, 38, 38, 0.22);
+    --vl-accent-border: rgba(220, 38, 38, 0.4);
 
     /* Secondary Accent Tokens */
     --vl-accent-cool: #3b82f6;
-    --vl-accent-cool-subtle: rgba(59, 130, 246, 0.12);
-    --vl-accent-amber: #f59e0b;
-    --vl-accent-emerald: #10b981;
+    --vl-accent-cool-subtle: rgba(59, 130, 246, 0.14);
+    --vl-accent-amber: #d97706;
+    --vl-accent-emerald: #059669;
 
-    /* Typography & Content Colors */
+    /* Typography & Content Colors (High Contrast WCAG AA) */
     --vl-text-primary: #f8fafc;
-    --vl-text-secondary: #94a3b8;
-    --vl-text-muted: #64748b;
-    --vl-text-disabled: #475569;
+    --vl-text-secondary: #cbd5e1;
+    --vl-text-muted: #94a3b8;
+    --vl-text-disabled: #64748b;
 
     /* Border & Divider Tokens */
-    --vl-border-subtle: rgba(255, 255, 255, 0.07);
-    --vl-border-medium: rgba(255, 255, 255, 0.14);
-    --vl-border-strong: rgba(255, 255, 255, 0.24);
+    --vl-border-subtle: rgba(255, 255, 255, 0.08);
+    --vl-border-medium: rgba(255, 255, 255, 0.16);
+    --vl-border-strong: rgba(255, 255, 255, 0.26);
 
     /* Radii Tokens */
     --vl-radius-xs: 6px;
@@ -53,14 +51,15 @@
     --vl-shadow-md: 0 8px 24px rgba(0, 0, 0, 0.55);
     --vl-shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.7);
     --vl-shadow-glow: 0 0 24px var(--vl-accent-glow);
-    --vl-shadow-glow-lg: 0 0 48px rgba(239, 68, 68, 0.45);
+    --vl-shadow-glow-lg: 0 0 48px rgba(220, 38, 38, 0.48);
 
     /* Layout & Sizing */
     --vl-header-height: 72px;
     --vl-header-height-mobile: 64px;
     --vl-max-width: 1240px;
-    --vl-transition-base: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-    --vl-transition-smooth: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    --vl-transition-fast: 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+    --vl-transition-base: 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    --vl-transition-smooth: 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* Base resets & typography */
@@ -71,7 +70,7 @@
 body {
     background-color: var(--vl-bg-base);
     color: var(--vl-text-primary);
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     margin: 0;
     padding: 0;
     -webkit-font-smoothing: antialiased;
@@ -100,7 +99,7 @@ body {
     border: 1px solid var(--vl-border-subtle);
     border-radius: var(--vl-radius-lg);
     box-shadow: var(--vl-shadow-sm);
-    transition: var(--vl-transition-smooth);
+    transition: transform var(--vl-transition-smooth), border-color var(--vl-transition-smooth), box-shadow var(--vl-transition-smooth);
 }
 
 .vl-glass-card:hover {
@@ -135,75 +134,13 @@ body {
 
 .vl-caption {
     font-size: 0.75rem;
-    font-weight: 600;
+    font-weight: 700;
     letter-spacing: 0.1em;
     text-transform: uppercase;
     color: var(--vl-text-muted);
 }
 
 /* VALORA Wordmark & Vector/Image Logo System */
-.vl-logo-link {
-    display: inline-flex;
-    align-items: center;
-    text-decoration: none;
-    user-select: none;
-    transition: opacity 0.2s ease, transform 0.2s ease;
-}
-
-.vl-logo-link:hover {
-    opacity: 0.92;
-    transform: translateY(-1px);
-}
-
-.vl-logo-svg,
-.vl-logo-img {
-    height: 28px;
-    width: auto;
-    max-height: 28px;
-    object-fit: contain;
-    display: block;
-}
-
-.vl-logo-svg-lg,
-.vl-logo-img-lg {
-    height: 34px;
-    width: auto;
-    max-height: 34px;
-    object-fit: contain;
-    display: block;
-}
-
-.vl-logo-svg-hero {
-    height: 72px;
-    width: auto;
-    max-width: 92vw;
-    display: inline-block;
-    color: #ffffff;
-    filter: drop-shadow(0 0 30px rgba(239, 68, 68, 0.45));
-}
-
-@media (max-width: 768px) {
-    .vl-logo-svg-hero {
-        height: 52px;
-    }
-    .vl-logo-svg,
-    .vl-logo-img {
-        height: 24px;
-        max-height: 24px;
-    }
-}
-
-@media (max-width: 480px) {
-    .vl-logo-svg-hero {
-        height: 40px;
-    }
-    .vl-logo-svg,
-    .vl-logo-img {
-        height: 24px;
-        max-height: 24px;
-    }
-}
-
 .vl-wordmark {
     font-size: 1.35rem;
     font-weight: 900;
@@ -240,7 +177,7 @@ body {
     gap: 8px;
     font-family: inherit;
     font-size: 0.9375rem;
-    font-weight: 600;
+    font-weight: 700;
     letter-spacing: -0.01em;
     line-height: 1;
     padding: 12px 24px;
@@ -250,7 +187,7 @@ body {
     text-decoration: none;
     user-select: none;
     white-space: nowrap;
-    transition: var(--vl-transition-base);
+    transition: transform var(--vl-transition-base), background-color var(--vl-transition-base), box-shadow var(--vl-transition-base), border-color var(--vl-transition-base);
     outline: none;
 }
 
@@ -265,7 +202,7 @@ body {
 .vl-btn-primary {
     background: var(--vl-accent);
     color: #ffffff;
-    border-color: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.2);
     box-shadow: var(--vl-shadow-glow);
 }
 
@@ -281,13 +218,13 @@ body {
 }
 
 .vl-btn-secondary {
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.06);
     color: var(--vl-text-primary);
     border-color: var(--vl-border-medium);
 }
 
 .vl-btn-secondary:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.12);
     border-color: var(--vl-border-strong);
     transform: translateY(-1px);
 }
@@ -305,7 +242,7 @@ body {
 
 .vl-btn-danger {
     background: var(--vl-accent-subtle);
-    color: #fca5a5;
+    color: #fecaca;
     border-color: var(--vl-accent-border);
 }
 
@@ -323,19 +260,20 @@ body {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    background: rgba(255, 255, 255, 0.04);
+    background: rgba(255, 255, 255, 0.05);
     border: 1px solid var(--vl-border-subtle);
     color: var(--vl-text-secondary);
-    transition: var(--vl-transition-base);
+    transition: color var(--vl-transition-base), background-color var(--vl-transition-base), border-color var(--vl-transition-base);
+    cursor: pointer;
 }
 
 .vl-btn-icon:hover {
     color: var(--vl-text-primary);
-    background: rgba(255, 255, 255, 0.09);
+    background: rgba(255, 255, 255, 0.12);
     border-color: var(--vl-border-medium);
 }
 
-/* Badges & Indicators (SmoothUI Notification Badge adaptation) */
+/* Badges & Indicators */
 .vl-badge {
     display: inline-flex;
     align-items: center;
@@ -351,27 +289,27 @@ body {
 }
 
 .vl-badge-subtle {
-    background: rgba(255, 255, 255, 0.06);
+    background: rgba(255, 255, 255, 0.08);
     color: var(--vl-text-secondary);
-    border: 1px solid var(--vl-border-subtle);
+    border: 1px solid var(--vl-border-medium);
 }
 
 .vl-badge-accent {
     background: var(--vl-accent-subtle);
-    color: #f87171;
+    color: #fca5a5;
     border: 1px solid var(--vl-accent-border);
 }
 
 .vl-badge-amber {
-    background: rgba(245, 158, 11, 0.12);
-    color: #fbbf24;
-    border: 1px solid rgba(245, 158, 11, 0.3);
+    background: rgba(217, 119, 6, 0.16);
+    color: #fcd34d;
+    border: 1px solid rgba(245, 158, 11, 0.35);
 }
 
 .vl-badge-live {
-    background: rgba(16, 185, 129, 0.12);
-    color: #34d399;
-    border: 1px solid rgba(16, 185, 129, 0.3);
+    background: rgba(5, 150, 105, 0.16);
+    color: #6ee7b7;
+    border: 1px solid rgba(16, 185, 129, 0.35);
 }
 
 .vl-dot-pulse {
@@ -390,6 +328,7 @@ body {
     background-color: currentColor;
     opacity: 0.4;
     animation: vlPulse 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+    will-change: transform, opacity;
 }
 
 @keyframes vlPulse {
@@ -398,10 +337,7 @@ body {
     100% { transform: scale(1); opacity: 0; }
 }
 
-/* ==========================================================================
-   Header & Navigation Component Styles
-   ========================================================================== */
-
+/* Header & Navigation */
 .vl-header {
     position: fixed;
     top: 0;
@@ -457,20 +393,20 @@ body {
     font-size: 0.875rem;
     font-weight: 500;
     text-decoration: none;
-    transition: var(--vl-transition-base);
+    transition: color 0.2s ease, background-color 0.2s ease;
     position: relative;
     user-select: none;
 }
 
 .vl-nav-item:hover {
-    color: var(--vl-text-primary);
-    background: rgba(255, 255, 255, 0.04);
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.06);
 }
 
 .vl-nav-item.active {
-    color: var(--vl-text-primary);
+    color: #ffffff;
     font-weight: 600;
-    background: rgba(255, 255, 255, 0.06);
+    background: rgba(255, 255, 255, 0.08);
 }
 
 .vl-nav-item.active::after {
@@ -483,22 +419,6 @@ body {
     height: 2px;
     border-radius: 2px;
     background-color: var(--vl-accent);
-}
-
-.vl-nav-item.disabled {
-    opacity: 0.6;
-    cursor: default;
-}
-
-.vl-nav-tag {
-    font-size: 9px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    padding: 2px 6px;
-    border-radius: var(--vl-radius-full);
-    background: rgba(255, 255, 255, 0.06);
-    color: var(--vl-text-muted);
 }
 
 .vl-header-right {
@@ -520,15 +440,15 @@ body {
     width: 42px;
     height: 42px;
     border-radius: var(--vl-radius-md);
-    background: rgba(255, 255, 255, 0.04);
+    background: rgba(255, 255, 255, 0.05);
     border: 1px solid var(--vl-border-subtle);
     color: var(--vl-text-primary);
     cursor: pointer;
-    transition: var(--vl-transition-base);
+    transition: background-color 0.2s ease;
 }
 
 .vl-mobile-toggle:hover {
-    background: rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.1);
 }
 
 @media (min-width: 860px) {
@@ -554,8 +474,9 @@ body {
     transform: translateY(-110%);
     opacity: 0;
     pointer-events: none;
-    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
     z-index: 980;
+    will-change: transform, opacity;
 }
 
 .vl-mobile-drawer.open {
@@ -574,14 +495,14 @@ body {
     font-size: 1rem;
     font-weight: 500;
     text-decoration: none;
-    background: rgba(255, 255, 255, 0.02);
+    background: rgba(255, 255, 255, 0.03);
     border: 1px solid transparent;
-    transition: var(--vl-transition-base);
+    transition: color 0.2s ease, background-color 0.2s ease;
 }
 
 .vl-mobile-nav-link:hover, .vl-mobile-nav-link.active {
-    color: var(--vl-text-primary);
-    background: rgba(255, 255, 255, 0.05);
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.08);
     border-color: var(--vl-border-subtle);
 }
 
@@ -589,18 +510,165 @@ body {
     font-weight: 600;
 }
 
-/* Responsive Helper Constraints */
+/* Inputs and Modals */
+.vl-input {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--vl-border-subtle);
+    border-radius: var(--vl-radius-md);
+    padding: 12px 16px;
+    color: #ffffff;
+    font-family: inherit;
+    font-size: 0.9375rem;
+    outline: none;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+    box-sizing: border-box;
+}
+
+.vl-input:focus {
+    border-color: var(--vl-accent);
+    background: rgba(255, 255, 255, 0.09);
+    box-shadow: 0 0 0 3px var(--vl-accent-subtle);
+}
+
+.vl-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+}
+
+.vl-modal-card {
+    background: linear-gradient(180deg, #14141a 0%, #0c0c10 100%);
+    border: 1px solid var(--vl-border-medium);
+    border-radius: var(--vl-radius-xl);
+    padding: 32px 28px;
+    max-width: 440px;
+    width: 100%;
+    box-shadow: var(--vl-shadow-lg), 0 0 40px rgba(0, 0, 0, 0.8);
+}
+
+/* Core Production Atomic Utilities (Replaces Tailwind CDN completely) */
+.flex { display: flex !important; }
+.inline-flex { display: inline-flex !important; }
+.hidden { display: none !important; }
+.block { display: block !important; }
+.items-center { align-items: center !important; }
+.justify-center { justify-content: center !important; }
+.justify-between { justify-content: space-between !important; }
+.justify-around { justify-content: space-around !important; }
+.flex-col { flex-direction: column !important; }
+.flex-1 { flex: 1 1 0% !important; }
+.flex-shrink-0 { flex-shrink: 0 !important; }
+
+.gap-1 { gap: 4px !important; }
+.gap-2 { gap: 8px !important; }
+.gap-2\.5 { gap: 10px !important; }
+.gap-3 { gap: 12px !important; }
+.gap-4 { gap: 16px !important; }
+.gap-6 { gap: 24px !important; }
+.gap-8 { gap: 32px !important; }
+
+.space-y-2 > :not([hidden]) ~ :not([hidden]) { margin-top: 8px !important; }
+.space-y-3\.5 > :not([hidden]) ~ :not([hidden]) { margin-top: 14px !important; }
+.space-y-4 > :not([hidden]) ~ :not([hidden]) { margin-top: 16px !important; }
+
+.w-full { width: 100% !important; }
+.h-full { height: 100% !important; }
+.min-w-0 { min-width: 0px !important; }
+.max-w-full { max-width: 100% !important; }
+.w-4 { width: 16px !important; }
+.h-4 { height: 16px !important; }
+.w-5 { width: 20px !important; }
+.h-5 { height: 20px !important; }
+.w-12 { width: 48px !important; }
+.h-12 { height: 48px !important; }
+.w-14 { width: 56px !important; }
+.h-14 { height: 56px !important; }
+
+.m-0 { margin: 0 !important; }
+.mx-auto { margin-left: auto !important; margin-right: auto !important; }
+.mb-1 { margin-bottom: 4px !important; }
+.mb-1\.5 { margin-bottom: 6px !important; }
+.mb-2 { margin-bottom: 8px !important; }
+.mb-3 { margin-bottom: 12px !important; }
+.mb-4 { margin-bottom: 16px !important; }
+.mb-5 { margin-bottom: 20px !important; }
+.mb-6 { margin-bottom: 24px !important; }
+.mt-1 { margin-top: 4px !important; }
+.mt-2 { margin-top: 8px !important; }
+.mt-4 { margin-top: 16px !important; }
+.ml-1 { margin-left: 4px !important; }
+.mr-3 { margin-right: 12px !important; }
+
+.p-0 { padding: 0 !important; }
+.p-2 { padding: 8px !important; }
+.p-8 { padding: 32px !important; }
+.py-2\.5 { padding-top: 10px !important; padding-bottom: 10px !important; }
+.py-3 { padding-top: 12px !important; padding-bottom: 12px !important; }
+.pt-2 { padding-top: 8px !important; }
+
+.text-xs { font-size: 0.75rem !important; line-height: 1rem !important; }
+.text-sm { font-size: 0.875rem !important; line-height: 1.25rem !important; }
+.text-lg { font-size: 1.125rem !important; line-height: 1.75rem !important; }
+.text-xl { font-size: 1.25rem !important; line-height: 1.75rem !important; }
+.text-2xl { font-size: 1.5rem !important; line-height: 2rem !important; }
+.text-\[11px\] { font-size: 11px !important; }
+
+.font-medium { font-weight: 500 !important; }
+.font-semibold { font-weight: 600 !important; }
+.font-bold { font-weight: 700 !important; }
+.font-black { font-weight: 900 !important; }
+
+.tracking-tight { letter-spacing: -0.025em !important; }
+.tracking-tighter { letter-spacing: -0.05em !important; }
+.tracking-wider { letter-spacing: 0.05em !important; }
+.uppercase { text-transform: uppercase !important; }
+.text-center { text-align: center !important; }
+
+.text-white { color: #ffffff !important; }
+.text-gray-300 { color: #cbd5e1 !important; }
+.text-gray-400 { color: #94a3b8 !important; }
+.text-red-400 { color: #f87171 !important; }
+.text-red-500 { color: #ef4444 !important; }
+.text-emerald-400 { color: #34d399 !important; }
+
+.bg-zinc-900 { background-color: #18181b !important; }
+.bg-red-500\/10 { background-color: rgba(239, 68, 68, 0.1) !important; }
+.border-red-500\/20 { border-color: rgba(239, 68, 68, 0.2) !important; }
+.bg-emerald-500\/10 { background-color: rgba(16, 185, 129, 0.1) !important; }
+.border-emerald-500\/20 { border-color: rgba(16, 185, 129, 0.2) !important; }
+.rounded-full { border-radius: 9999px !important; }
+.resize-none { resize: none !important; }
+
+.disabled\:opacity-50:disabled { opacity: 0.5 !important; }
+.disabled\:cursor-not-allowed:disabled { cursor: not-allowed !important; }
+
+@media (min-width: 640px) {
+    :root {
+        --vl-header-height: var(--vl-header-height);
+    }
+    .sm\:inline { display: inline !important; }
+    .sm\:flex { display: flex !important; }
+    .sm\:hidden { display: none !important; }
+}
+
+@media (min-width: 768px) {
+    .md\:flex { display: flex !important; }
+    .md\:hidden { display: none !important; }
+}
+
 @media (max-width: 640px) {
     :root {
         --vl-header-height: var(--vl-header-height-mobile);
     }
-    
-    .vl-header-container {
-        padding: 0 16px;
-    }
-    
-    .vl-header-cta {
-        padding: 8px 14px;
-        font-size: 0.8125rem;
-    }
+    .vl-header-container { padding: 0 16px; }
+    .vl-header-cta { padding: 8px 14px; font-size: 0.8125rem; }
 }
+

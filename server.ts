@@ -478,35 +478,52 @@ app.use((req, res, next) => {
 
 // Clean Public Page Routes
 app.get("/", (req, res) => {
+  res.setHeader("Cache-Control", "public, max-age=0, must-revalidate");
   res.sendFile(path.join(__dirname, "public/index.html"));
 });
 
 app.get("/sitemap.xml", (req, res) => {
+  res.setHeader("Cache-Control", "public, max-age=3600, must-revalidate");
   res.type("application/xml").sendFile(path.join(__dirname, "public/sitemap.xml"));
 });
 
 app.get("/robots.txt", (req, res) => {
+  res.setHeader("Cache-Control", "public, max-age=3600, must-revalidate");
   res.type("text/plain").sendFile(path.join(__dirname, "public/robots.txt"));
 });
 
 app.get("/chat", (req, res) => {
+  res.setHeader("Cache-Control", "public, max-age=0, must-revalidate");
   res.sendFile(path.join(__dirname, "public/chat.html"));
 });
 
 app.get("/privacy", (req, res) => {
+  res.setHeader("Cache-Control", "public, max-age=0, must-revalidate");
   res.sendFile(path.join(__dirname, "public/privacy.html"));
 });
 
 app.get("/terms", (req, res) => {
+  res.setHeader("Cache-Control", "public, max-age=0, must-revalidate");
   res.sendFile(path.join(__dirname, "public/terms.html"));
 });
 
-// Serve static files from the 'public' directory
-app.use(express.static(path.join(__dirname, "public")));
+// Serve static files from the 'public' directory with optimized Cache-Control headers
+app.use(express.static(path.join(__dirname, "public"), {
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith(".html") || filePath.endsWith(".xml") || filePath.endsWith(".txt")) {
+      res.setHeader("Cache-Control", "public, max-age=0, must-revalidate");
+    } else if (
+      filePath.match(/\.(css|js|svg|png|jpg|jpeg|gif|webp|webm|mp4|woff2|woff|ttf|eot|ico)$/i)
+    ) {
+      // Long-term immutable caching for static assets (CSS, JS, media, fonts)
+      res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+    }
+  }
+}));
 
 // Custom 404 Handler for all remaining unmatched routes
 app.use((req, res) => {
-  res.status(404).sendFile(path.join(__dirname, "public/404.html"));
+  res.status(404).setHeader("Cache-Control", "no-cache").sendFile(path.join(__dirname, "public/404.html"));
 });
 
 // Matchmaking state
