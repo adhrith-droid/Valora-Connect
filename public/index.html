@@ -111,6 +111,16 @@
             }
         }
 
+        .vl-header-login-btn {
+            display: none;
+        }
+
+        @media (min-width: 768px) {
+            .vl-header-login-btn {
+                display: inline-flex;
+            }
+        }
+
         body {
             background-color: var(--vl-bg-base);
             color: var(--vl-text-primary);
@@ -1106,7 +1116,10 @@
             </div>
             
             <div class="vl-header-right">
-                <a href="/chat" class="vl-btn vl-btn-primary vl-header-cta">
+                <a href="/login" class="vl-btn vl-btn-ghost vl-header-login-btn" style="padding: 8px 14px; font-size: 0.875rem; font-weight: 600; color: #cbd5e1;">
+                    Log In
+                </a>
+                <a href="/login" class="vl-btn vl-btn-primary vl-header-cta" id="header-connect-btn">
                     Start Connecting
                 </a>
                 <button type="button" id="vl-mobile-toggle" class="vl-mobile-toggle" aria-label="Toggle Navigation Menu" aria-expanded="false">
@@ -1124,8 +1137,11 @@
         <a href="#" class="vl-mobile-nav-link vl-nav-placeholder" data-feature="Discover">Discover</a>
         <a href="#" class="vl-mobile-nav-link vl-nav-placeholder" data-feature="Live">Live</a>
         <a href="#" class="vl-mobile-nav-link vl-nav-placeholder" data-feature="Messages">Messages</a>
-        <div style="padding-top: 8px; border-top: 1px solid var(--vl-border-subtle); margin-top: 4px;">
-            <a href="/chat" class="vl-btn vl-btn-primary" style="width: 100%; text-align: center;">
+        <div style="padding-top: 8px; border-top: 1px solid var(--vl-border-subtle); margin-top: 4px; display: flex; flex-direction: column; gap: 8px;">
+            <a href="/login" class="vl-btn vl-btn-secondary" style="width: 100%; text-align: center;">
+                Log In
+            </a>
+            <a href="/login" class="vl-btn vl-btn-primary vl-drawer-connect-btn" style="width: 100%; text-align: center;">
                 Start Connecting
             </a>
         </div>
@@ -1160,7 +1176,7 @@
         </div>
         <h2 class="tagline">Next-Generation Stranger Video Chat.</h2>
         <p class="description">Meet someone new, anywhere in the world.<br class="hidden sm:inline"> One tap. One real connection.</p>
-        <a href="/chat" class="btn-enter">ENTER VALORA</a>
+        <a href="/login" class="btn-enter" id="hero-enter-btn">ENTER VALORA</a>
     </section>
 
     <!-- Features, How It Works, Preview, Safety, CTA & Footer -->

@@ -8,6 +8,68 @@
     <meta name="robots" content="noindex, nofollow">
     <link rel="canonical" href="https://ryntly.in/chat">
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+
+    <!-- Strict Pre-Render Authentication Guard -->
+    <style id="vl-auth-gate-lock">
+        html, body {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+        }
+    </style>
+    <script>
+        (function() {
+            function redirectToLogin() {
+                try {
+                    sessionStorage.removeItem('valora_user');
+                } catch(e) {}
+                window.location.replace('/login');
+            }
+
+            // Immediately check authentication before rendering chat content
+            fetch('/api/auth/user', {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'Cache-Control': 'no-cache, no-store, must-revalidate'
+                },
+                cache: 'no-store'
+            })
+            .then(function(res) {
+                if (!res.ok) throw new Error('Unauthenticated');
+                return res.json();
+            })
+            .then(function(data) {
+                if (data && data.authenticated && data.user) {
+                    window.__VALORA_AUTH_USER__ = data.user;
+                    var lock = document.getElementById('vl-auth-gate-lock');
+                    if (lock) lock.remove();
+                    document.documentElement.style.visibility = 'visible';
+                    document.documentElement.style.opacity = '1';
+                } else {
+                    redirectToLogin();
+                }
+            })
+            .catch(function() {
+                redirectToLogin();
+            });
+
+            // Prevent Back-Forward Cache (BFCache) unauthorized restoration on back/forward navigation
+            window.addEventListener('pageshow', function(event) {
+                if (event.persisted || (window.performance && window.performance.getEntriesByType && window.performance.getEntriesByType("navigation")[0] && window.performance.getEntriesByType("navigation")[0].type === "back_forward")) {
+                    fetch('/api/auth/user', { cache: 'no-store' })
+                        .then(function(res) { return res.json(); })
+                        .then(function(data) {
+                            if (!data.authenticated || !data.user) {
+                                redirectToLogin();
+                            }
+                        })
+                        .catch(redirectToLogin);
+                }
+            });
+        })();
+    </script>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800&display=swap">

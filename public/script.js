@@ -1,4 +1,23 @@
-const socket = io();
+const socket = io({
+    reconnectionAttempts: 5,
+    timeout: 10000
+});
+
+// If socket connection fails due to lack of authentication, immediately redirect to login
+socket.on('connect_error', (err) => {
+    console.warn('Socket connection authorization check:', err.message);
+    if (err && err.message && (err.message.includes('Unauthorized') || err.message.includes('Login required'))) {
+        try {
+            sessionStorage.removeItem('valora_user');
+        } catch (e) {}
+        window.location.replace('/login');
+    }
+});
+
+socket.on('banned', (data) => {
+    alert(data.reason || 'Your account or IP has been suspended by an administrator.');
+    window.location.replace('/login');
+});
 
 const config = {
     iceServers: [
@@ -83,12 +102,35 @@ function updateStatus(state, message) {
 }
 
 // Check if user is already in session and initialize
-function initSession() {
+async function initSession() {
+    let authUser = window.__VALORA_AUTH_USER__;
+    if (!authUser) {
+        try {
+            const res = await fetch('/api/auth/user', { cache: 'no-store' });
+            const data = await res.json();
+            if (data.authenticated && data.user) {
+                authUser = data.user;
+                window.__VALORA_AUTH_USER__ = data.user;
+            } else {
+                window.location.replace('/login');
+                return;
+            }
+        } catch (e) {
+            window.location.replace('/login');
+            return;
+        }
+    }
+
+    const defaultName = authUser.name || 'Valora User';
+    if (modalName && !modalName.value) {
+        modalName.value = defaultName;
+    }
+
     const storedUser = sessionStorage.getItem('valora_user');
     if (storedUser) {
         try {
             const userData = JSON.parse(storedUser);
-            window.userName = userData.name;
+            window.userName = userData.name || defaultName;
             if (localLabel) localLabel.innerText = window.userName;
             startMedia();
             return;
@@ -97,9 +139,14 @@ function initSession() {
         }
     }
     
-    // If not configured, show identity verification directly
+    // Pre-populate with verified Google authentication name
+    window.userName = defaultName;
+    if (localLabel) localLabel.innerText = defaultName;
+
+    // Show verification confirmation modal
     if (ageGateModal) {
         ageGateModal.classList.remove('hidden');
+        validateModal();
     }
 }
 

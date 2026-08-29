@@ -3,14 +3,27 @@ import { createServer } from "http";
 import { Server } from "socket.io";
 import path from "path";
 import { fileURLToPath } from "url";
+import crypto from "crypto";
 import pg from "pg";
 import session from "express-session";
 
 const { Pool } = pg;
 
+export interface AuthUser {
+  id: number | string;
+  google_id: string;
+  email: string;
+  name: string;
+  avatar_url: string;
+  created_at?: Date;
+  last_login_at?: Date;
+}
+
 declare module "express-session" {
   interface SessionData {
-    admin: boolean;
+    admin?: boolean;
+    user?: AuthUser;
+    oauthState?: string;
   }
 }
 
@@ -22,16 +35,19 @@ app.set("trust proxy", 1);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use(session({
-  secret: "valora-admin-session-secure-key",
+const sessionMiddleware = session({
+  secret: process.env.SESSION_SECRET || "valora-admin-session-secure-key",
   resave: false,
   saveUninitialized: false,
   cookie: {
     secure: false,
     httpOnly: true,
-    sameSite: "lax"
+    sameSite: "lax",
+    maxAge: 1000 * 60 * 60 * 24 * 30 // 30 days
   }
-}));
+});
+
+app.use(sessionMiddleware);
 
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
@@ -41,9 +57,23 @@ const io = new Server(httpServer, {
   }
 });
 
+// Socket.io Session & Auth Middleware
+io.use((socket, next) => {
+  const req = socket.request as express.Request;
+  sessionMiddleware(req, {} as any, () => {
+    if (req.session && req.session.user) {
+      (socket as any).authUser = req.session.user;
+      next();
+    } else {
+      console.warn(`[Socket Auth] Unauthorized socket connection rejected: ${socket.id}`);
+      next(new Error("Unauthorized: Login required"));
+    }
+  });
+});
+
 const PORT = 3000;
 
-// In-memory fallback stores for Reports and Bans
+// In-memory fallback stores for Reports, Bans, and Users
 interface ReportItem {
   _id: string;
   id: string;
@@ -66,6 +96,7 @@ interface BanItem {
 
 const inMemoryReports: ReportItem[] = [];
 const inMemoryBans: BanItem[] = [];
+const inMemoryUsers: AuthUser[] = [];
 
 // Neon PostgreSQL Database Configuration
 const databaseUrl = process.env.DATABASE_URL || process.env.DATABESE_URL;
@@ -83,6 +114,16 @@ if (databaseUrl) {
 
     // Initialize PostgreSQL Tables for Neon
     pool.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id SERIAL PRIMARY KEY,
+        google_id VARCHAR(128) UNIQUE NOT NULL,
+        email VARCHAR(255) UNIQUE NOT NULL,
+        name VARCHAR(255) NOT NULL,
+        avatar_url TEXT DEFAULT '',
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        last_login_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+
       CREATE TABLE IF NOT EXISTS reports (
         id SERIAL PRIMARY KEY,
         report_id VARCHAR(64) UNIQUE,
@@ -105,7 +146,7 @@ if (databaseUrl) {
     `)
       .then(() => {
         isNeonConnected = true;
-        console.log("Connected to Neon Database successfully and initialized tables.");
+        console.log("Connected to Neon Database successfully and initialized users, reports, bans tables.");
       })
       .catch((err) => {
         console.warn("Neon Database initialization warning, falling back to memory:", err.message);
@@ -114,7 +155,7 @@ if (databaseUrl) {
     console.warn("Neon Database pool creation error:", err.message);
   }
 } else {
-  console.log("DATABASE_URL / DATABESE_URL not provided. Operating with in-memory moderation store.");
+  console.log("DATABASE_URL not provided. Operating with in-memory moderation and user store.");
 }
 
 // Helper to check if an IP is banned
@@ -141,6 +182,20 @@ function requireAdmin(req: express.Request, res: express.Response, next: express
       return res.status(401).json({ error: "Unauthorized" });
     }
     return res.redirect('/admin/login.html');
+  }
+  next();
+}
+
+// User Authentication Middleware for Chat & Protected Actions
+function requireUserAuth(req: express.Request, res: express.Response, next: express.NextFunction) {
+  if (!req.session.user) {
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0");
+    res.setHeader("Pragma", "no-cache");
+    res.setHeader("Expires", "0");
+    if (req.xhr || req.headers.accept?.includes("application/json") || req.path.startsWith("/api/")) {
+      return res.status(401).json({ authenticated: false, error: "Authentication required", redirect: "/login" });
+    }
+    return res.redirect("/login");
   }
   next();
 }
@@ -456,6 +511,220 @@ app.post("/admin/ban", requireAdmin, async (req, res) => {
   }
 });
 
+// Helper for Google OAuth redirect URI
+function getGoogleRedirectUri(req: express.Request): string {
+  if (process.env.GOOGLE_REDIRECT_URI) {
+    return process.env.GOOGLE_REDIRECT_URI.trim();
+  }
+  if (process.env.APP_URL) {
+    return `${process.env.APP_URL.trim().replace(/\/$/, '')}/api/auth/google/callback`;
+  }
+  const rawProto = req.headers['x-forwarded-proto'] || req.protocol || 'https';
+  const proto = Array.isArray(rawProto) ? rawProto[0] : (rawProto.toString().split(',')[0].trim());
+  const host = req.headers['x-forwarded-host'] || req.get('host');
+  return `${proto}://${host}/api/auth/google/callback`;
+}
+
+// ============================================================================
+// Google OAuth 2.0 Authentication Routes
+// ============================================================================
+
+// 1. Initiate Google OAuth Flow
+app.get("/api/auth/google", (req, res) => {
+  const clientId = process.env.GOOGLE_CLIENT_ID?.trim();
+  const clientSecret = process.env.GOOGLE_CLIENT_SECRET?.trim();
+
+  if (!clientId || !clientSecret) {
+    console.warn("[Auth] GOOGLE_CLIENT_ID or GOOGLE_CLIENT_SECRET environment variables are missing.");
+    return res.redirect("/login?error=missing_config");
+  }
+
+  const state = crypto.randomBytes(16).toString("hex");
+  req.session.oauthState = state;
+
+  req.session.save((err) => {
+    if (err) {
+      console.error("[Auth] Failed to save session before OAuth redirect:", err);
+    }
+    const redirectUri = getGoogleRedirectUri(req);
+    const params = new URLSearchParams({
+      client_id: clientId,
+      redirect_uri: redirectUri,
+      response_type: "code",
+      scope: "openid profile email",
+      access_type: "offline",
+      prompt: "select_account",
+      state: state
+    });
+
+    res.redirect(`https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`);
+  });
+});
+
+// 2. Google OAuth Callback
+app.get("/api/auth/google/callback", async (req, res) => {
+  try {
+    if (req.query.error) {
+      console.warn("[Auth] Google OAuth callback returned error:", req.query.error);
+      return res.redirect(`/login?error=${encodeURIComponent(req.query.error as string)}`);
+    }
+
+    const code = req.query.code as string;
+    const state = req.query.state as string;
+
+    if (!code) {
+      return res.redirect("/login?error=no_code_provided");
+    }
+
+    const clientId = process.env.GOOGLE_CLIENT_ID?.trim();
+    const clientSecret = process.env.GOOGLE_CLIENT_SECRET?.trim();
+
+    if (!clientId || !clientSecret) {
+      return res.redirect("/login?error=missing_config");
+    }
+
+    const redirectUri = getGoogleRedirectUri(req);
+
+    // Exchange authorization code for tokens
+    const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded"
+      },
+      body: new URLSearchParams({
+        code,
+        client_id: clientId,
+        client_secret: clientSecret,
+        redirect_uri: redirectUri,
+        grant_type: "authorization_code"
+      }).toString()
+    });
+
+    const tokenData = await tokenRes.json() as any;
+
+    if (!tokenRes.ok || !tokenData.access_token) {
+      console.error("[Auth] Token exchange failed:", tokenData);
+      return res.redirect(`/login?error=token_exchange_failed&details=${encodeURIComponent(tokenData.error_description || tokenData.error || 'Token request failed')}`);
+    }
+
+    // Retrieve Google User Profile
+    const userProfileRes = await fetch("https://www.googleapis.com/oauth2/v2/userinfo", {
+      headers: {
+        Authorization: `Bearer ${tokenData.access_token}`
+      }
+    });
+
+    const googleProfile = await userProfileRes.json() as any;
+
+    if (!userProfileRes.ok || !googleProfile.id || !googleProfile.email) {
+      console.error("[Auth] User profile retrieval failed:", googleProfile);
+      return res.redirect("/login?error=profile_fetch_failed");
+    }
+
+    const googleId = String(googleProfile.id);
+    const email = String(googleProfile.email).toLowerCase().trim();
+    const name = googleProfile.name || googleProfile.given_name || email.split('@')[0] || "Valora User";
+    const avatarUrl = googleProfile.picture || "";
+
+    let authUser: AuthUser;
+
+    if (isNeonConnected && pool) {
+      // Check if user already exists
+      const existingRes = await pool.query(
+        "SELECT id, google_id, email, name, avatar_url, created_at, last_login_at FROM users WHERE google_id = $1 OR email = $2 LIMIT 1",
+        [googleId, email]
+      );
+
+      if (existingRes.rows.length > 0) {
+        // User exists -> update last_login_at, name, avatar
+        const existing = existingRes.rows[0];
+        const updateRes = await pool.query(
+          "UPDATE users SET last_login_at = CURRENT_TIMESTAMP, name = COALESCE(NULLIF($1, ''), name), avatar_url = COALESCE(NULLIF($2, ''), avatar_url) WHERE id = $3 RETURNING id, google_id, email, name, avatar_url, created_at, last_login_at",
+          [name, avatarUrl, existing.id]
+        );
+        authUser = updateRes.rows[0];
+        console.log(`[Auth] Existing user authenticated: ${authUser.email} (ID: ${authUser.id})`);
+      } else {
+        // User does not exist -> create new user record in Neon PostgreSQL
+        const insertRes = await pool.query(
+          "INSERT INTO users (google_id, email, name, avatar_url, created_at, last_login_at) VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) RETURNING id, google_id, email, name, avatar_url, created_at, last_login_at",
+          [googleId, email, name, avatarUrl]
+        );
+        authUser = insertRes.rows[0];
+        console.log(`[Auth] New user registered in database: ${authUser.email} (ID: ${authUser.id})`);
+      }
+    } else {
+      // In-memory fallback
+      let memUser = inMemoryUsers.find(u => u.google_id === googleId || u.email === email);
+      if (memUser) {
+        memUser.last_login_at = new Date();
+        if (name) memUser.name = name;
+        if (avatarUrl) memUser.avatar_url = avatarUrl;
+        authUser = memUser;
+        console.log(`[Auth (in-memory)] Existing user logged in: ${authUser.email}`);
+      } else {
+        authUser = {
+          id: inMemoryUsers.length + 1,
+          google_id: googleId,
+          email: email,
+          name: name,
+          avatar_url: avatarUrl,
+          created_at: new Date(),
+          last_login_at: new Date()
+        };
+        inMemoryUsers.push(authUser);
+        console.log(`[Auth (in-memory)] New user logged in: ${authUser.email}`);
+      }
+    }
+
+    // Establish authenticated session
+    req.session.user = {
+      id: authUser.id,
+      google_id: authUser.google_id,
+      email: authUser.email,
+      name: authUser.name,
+      avatar_url: authUser.avatar_url,
+      last_login_at: authUser.last_login_at
+    };
+
+    req.session.save((saveErr) => {
+      if (saveErr) {
+        console.error("[Auth] Session save error after OAuth login:", saveErr);
+      }
+      // Redirect authenticated user to VALORA Home
+      res.redirect("/?login_success=1");
+    });
+  } catch (err: any) {
+    console.error("[Auth] Google OAuth callback exception:", err);
+    res.redirect(`/login?error=server_error&details=${encodeURIComponent(err.message || 'Authentication failed')}`);
+  }
+});
+
+// 3. Current Authenticated User Status API
+app.get("/api/auth/user", (req, res) => {
+  if (req.session.user) {
+    return res.json({
+      authenticated: true,
+      user: req.session.user
+    });
+  }
+  res.json({
+    authenticated: false,
+    user: null
+  });
+});
+
+// 4. Logout Route
+app.all(["/api/auth/logout", "/logout"], (req, res) => {
+  req.session.user = undefined;
+  req.session.save(() => {
+    if (req.xhr || req.headers.accept?.includes("application/json")) {
+      return res.json({ success: true, message: "Logged out successfully" });
+    }
+    res.redirect("/?logged_out=1");
+  });
+});
+
 // Clean URL Canonical Redirection Middleware for public pages
 app.use((req, res, next) => {
   const urlPath = req.path;
@@ -464,7 +733,14 @@ app.use((req, res, next) => {
   if (urlPath === '/index.html') {
     return res.redirect(301, '/' + queryString);
   }
+  if (urlPath === '/login.html') {
+    return res.redirect(301, '/login' + queryString);
+  }
   if (urlPath === '/chat.html') {
+    if (!req.session.user) {
+      res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0");
+      return res.redirect(302, '/login');
+    }
     return res.redirect(301, '/chat' + queryString);
   }
   if (urlPath === '/privacy.html') {
@@ -482,6 +758,11 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public/index.html"));
 });
 
+app.get("/login", (req, res) => {
+  res.setHeader("Cache-Control", "public, max-age=0, must-revalidate");
+  res.sendFile(path.join(__dirname, "public/login.html"));
+});
+
 app.get("/sitemap.xml", (req, res) => {
   res.setHeader("Cache-Control", "public, max-age=3600, must-revalidate");
   res.type("application/xml").sendFile(path.join(__dirname, "public/sitemap.xml"));
@@ -492,8 +773,11 @@ app.get("/robots.txt", (req, res) => {
   res.type("text/plain").sendFile(path.join(__dirname, "public/robots.txt"));
 });
 
-app.get("/chat", (req, res) => {
-  res.setHeader("Cache-Control", "public, max-age=0, must-revalidate");
+// Strictly Protected /chat Route
+app.get("/chat", requireUserAuth, (req, res) => {
+  res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0");
+  res.setHeader("Pragma", "no-cache");
+  res.setHeader("Expires", "0");
   res.sendFile(path.join(__dirname, "public/chat.html"));
 });
 

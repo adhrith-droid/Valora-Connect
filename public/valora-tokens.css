@@ -434,6 +434,16 @@ body {
     gap: 12px;
 }
 
+.vl-header-login-btn {
+    display: none;
+}
+
+@media (min-width: 768px) {
+    .vl-header-login-btn {
+        display: inline-flex;
+    }
+}
+
 .vl-header-cta {
     padding: 9px 18px;
     font-size: 0.875rem;
