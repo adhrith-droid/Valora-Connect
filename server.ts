@@ -507,17 +507,10 @@ app.get("/terms", (req, res) => {
   res.sendFile(path.join(__dirname, "public/terms.html"));
 });
 
-// Serve static files from the 'public' directory with optimized Cache-Control headers
+// Serve static files from the 'public' directory with dynamic revalidation
 app.use(express.static(path.join(__dirname, "public"), {
   setHeaders: (res, filePath) => {
-    if (filePath.endsWith(".html") || filePath.endsWith(".xml") || filePath.endsWith(".txt")) {
-      res.setHeader("Cache-Control", "public, max-age=0, must-revalidate");
-    } else if (
-      filePath.match(/\.(css|js|svg|png|jpg|jpeg|gif|webp|webm|mp4|woff2|woff|ttf|eot|ico)$/i)
-    ) {
-      // Long-term immutable caching for static assets (CSS, JS, media, fonts)
-      res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
-    }
+    res.setHeader("Cache-Control", "no-cache, must-revalidate");
   }
 }));
 

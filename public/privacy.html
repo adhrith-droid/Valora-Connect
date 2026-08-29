@@ -45,12 +45,12 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800&display=swap">
-    <link rel="stylesheet" href="/valora-tokens.css">
+    <link rel="stylesheet" href="/valora-tokens.css?v=3.1">
     <style>
         :root {
             --bg-color: var(--vl-bg-base);
             --accent-color: var(--vl-accent);
-            --header-height: 64px;
+            --header-height: 72px;
         }
         body {
             background-color: var(--bg-color);
@@ -59,19 +59,40 @@
             min-height: 100dvh;
             display: flex;
             flex-direction: column;
+            margin: 0;
+            padding-top: var(--header-height);
         }
-        header {
+        .vl-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            width: 100%;
             height: var(--header-height);
-            background: var(--vl-bg-glass);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border-bottom: 1px solid var(--vl-border-subtle);
+            background: var(--vl-bg-glass, rgba(10, 10, 14, 0.85));
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border-bottom: 1px solid var(--vl-border-subtle, rgba(255, 255, 255, 0.08));
+            z-index: 990;
+            display: flex;
+            align-items: center;
+            box-sizing: border-box;
+        }
+        .vl-header-container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 16px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0 24px;
-            z-index: 100;
-            flex-shrink: 0;
+            gap: 16px;
+            box-sizing: border-box;
+        }
+        @media (min-width: 768px) {
+            .vl-header-container {
+                padding: 0 24px;
+            }
         }
         .nav-link {
             color: #9ca3af;
@@ -86,26 +107,31 @@
         .content-container {
             max-width: 800px;
             width: 90%;
-            margin: 60px auto;
+            margin: 48px auto 60px;
             line-height: 1.6;
             color: #d1d5db;
         }
-        h1 { color: #fff; font-size: 3rem; font-weight: 900; margin-bottom: 2rem; letter-spacing: -0.025em; }
-        h2 { color: #fff; font-size: 1.5rem; font-weight: 700; margin-top: 2.5rem; margin-bottom: 1rem; }
+        h1 { color: #fff; font-size: clamp(2rem, 4vw, 2.5rem); font-weight: 800; margin-bottom: 1.5rem; letter-spacing: -0.025em; }
+        h2 { color: #fff; font-size: 1.375rem; font-weight: 600; margin-top: 2rem; margin-bottom: 0.75rem; }
         p { margin-bottom: 1.25rem; }
     </style>
 </head>
 <body>
-    <header id="main-header">
-        <div class="flex items-center gap-8">
-            <a href="/" class="vl-wordmark" aria-label="VALORA Home">
-                <span>VALORA</span><span class="vl-wordmark-dot"></span>
-            </a>
-            <nav id="nav-links" class="hidden md:flex items-center gap-6">
-                <a href="/" class="nav-link">Home</a>
-                <a href="/privacy" class="nav-link active">Privacy</a>
-                <a href="/terms" class="nav-link">Terms</a>
-            </nav>
+    <header class="vl-header" id="main-header">
+        <div class="vl-header-container">
+            <div style="display: flex; align-items: center; gap: 32px;">
+                <a href="/" class="vl-wordmark" aria-label="VALORA Home">
+                    <span>VALORA</span><span class="vl-wordmark-dot"></span>
+                </a>
+                <nav id="nav-links" style="display: flex; align-items: center; gap: 20px;">
+                    <a href="/" class="nav-link">Home</a>
+                    <a href="/privacy" class="nav-link active">Privacy</a>
+                    <a href="/terms" class="nav-link">Terms</a>
+                </nav>
+            </div>
+            <div>
+                <a href="/chat" class="vl-btn vl-btn-primary" style="padding: 8px 18px; font-size: 0.875rem;">Start Connecting</a>
+            </div>
         </div>
     </header>
 
