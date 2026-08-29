@@ -15,6 +15,7 @@ export interface AuthUser {
   email: string;
   name: string;
   avatar_url: string;
+  provider?: string;
   created_at?: Date;
   last_login_at?: Date;
 }
@@ -115,6 +116,7 @@ async function runDatabaseMigrations() {
         email VARCHAR(255),
         name VARCHAR(255),
         avatar_url TEXT DEFAULT '',
+        provider VARCHAR(64) DEFAULT 'google',
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
         last_login_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
@@ -125,8 +127,12 @@ async function runDatabaseMigrations() {
     await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS email VARCHAR(255);`);
     await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS name VARCHAR(255);`);
     await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_url TEXT DEFAULT '';`);
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS provider VARCHAR(64) DEFAULT 'google';`);
     await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP;`);
     await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP;`);
+
+    // Ensure any existing rows with NULL provider are populated with default 'google'
+    await pool.query(`UPDATE users SET provider = 'google' WHERE provider IS NULL;`);
 
     // 3. Safe unique indexes for google_id and email
     await pool.query(`CREATE UNIQUE INDEX IF NOT EXISTS idx_users_google_id ON users (google_id) WHERE google_id IS NOT NULL;`);
@@ -668,38 +674,39 @@ app.get("/api/auth/google/callback", async (req, res) => {
       try {
         // Query users table for existing record by google_id or email
         const existingRes = await pool.query(
-          "SELECT id, google_id, email, name, avatar_url, created_at, last_login_at FROM users WHERE google_id = $1 OR email = $2 LIMIT 1",
+          "SELECT id, google_id, email, name, avatar_url, provider, created_at, last_login_at FROM users WHERE google_id = $1 OR email = $2 LIMIT 1",
           [googleId, email]
         );
 
         if (existingRes.rows.length > 0) {
-          // Existing user -> Update last_login_at, ensure google_id is linked, update name and avatar
+          // Existing user -> Update last_login_at, ensure google_id and provider are linked, update name and avatar
           const existing = existingRes.rows[0];
           const updateRes = await pool.query(
             `UPDATE users 
              SET last_login_at = CURRENT_TIMESTAMP, 
                  google_id = COALESCE(google_id, $1), 
                  name = COALESCE(NULLIF($2, ''), name), 
-                 avatar_url = COALESCE(NULLIF($3, ''), avatar_url) 
+                 avatar_url = COALESCE(NULLIF($3, ''), avatar_url),
+                 provider = COALESCE(provider, 'google')
              WHERE id = $4 
-             RETURNING id, google_id, email, name, avatar_url, created_at, last_login_at`,
+             RETURNING id, google_id, email, name, avatar_url, provider, created_at, last_login_at`,
             [googleId, name, avatarUrl, existing.id]
           );
           authUser = updateRes.rows[0];
-          console.log(`[Auth] Existing user authenticated in PostgreSQL: ${authUser.email} (ID: ${authUser.id}, google_id: ${authUser.google_id})`);
+          console.log(`[Auth] Existing user authenticated in PostgreSQL: ${authUser.email} (ID: ${authUser.id}, provider: ${authUser.provider || 'google'})`);
         } else {
-          // New user -> Insert new user record in Neon PostgreSQL
+          // New user -> Insert new user record in Neon PostgreSQL with provider explicitly set to 'google'
           const insertRes = await pool.query(
-            `INSERT INTO users (google_id, email, name, avatar_url, created_at, last_login_at) 
-             VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) 
-             RETURNING id, google_id, email, name, avatar_url, created_at, last_login_at`,
-            [googleId, email, name, avatarUrl]
+            `INSERT INTO users (google_id, email, name, avatar_url, provider, created_at, last_login_at) 
+             VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) 
+             RETURNING id, google_id, email, name, avatar_url, provider, created_at, last_login_at`,
+            [googleId, email, name, avatarUrl, "google"]
           );
           authUser = insertRes.rows[0];
-          console.log(`[Auth] New user registered in PostgreSQL: ${authUser.email} (ID: ${authUser.id}, google_id: ${authUser.google_id})`);
+          console.log(`[Auth] New user registered in PostgreSQL: ${authUser.email} (ID: ${authUser.id}, provider: ${authUser.provider})`);
         }
       } catch (dbErr: any) {
-        console.error("[Auth] Database error in Google OAuth callback:", dbErr.message);
+        console.error(`[Auth] PostgreSQL operation failed during Google OAuth user sync for email=${email}: ${dbErr.message}`);
         throw dbErr;
       }
     } else {
@@ -709,6 +716,7 @@ app.get("/api/auth/google/callback", async (req, res) => {
         memUser.last_login_at = new Date();
         if (name) memUser.name = name;
         if (avatarUrl) memUser.avatar_url = avatarUrl;
+        if (!memUser.provider) memUser.provider = "google";
         authUser = memUser;
         console.log(`[Auth (in-memory)] Existing user logged in: ${authUser.email}`);
       } else {
@@ -718,6 +726,7 @@ app.get("/api/auth/google/callback", async (req, res) => {
           email: email,
           name: name,
           avatar_url: avatarUrl,
+          provider: "google",
           created_at: new Date(),
           last_login_at: new Date()
         };
@@ -733,6 +742,7 @@ app.get("/api/auth/google/callback", async (req, res) => {
       email: authUser.email,
       name: authUser.name,
       avatar_url: authUser.avatar_url,
+      provider: authUser.provider || "google",
       last_login_at: authUser.last_login_at
     };
 
