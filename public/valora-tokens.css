@@ -757,57 +757,279 @@ body {
     color: #fca5a5;
 }
 
-/* Mobile Nav Drawer */
-.vl-mobile-drawer {
+/* Mobile Nav Drawer & Backdrop */
+.vl-drawer-backdrop {
     position: fixed;
-    top: var(--vl-header-height);
-    left: 0;
-    right: 0;
-    background: var(--vl-bg-glass-elevated);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-    border-bottom: 1px solid var(--vl-border-medium);
-    padding: 16px 20px 24px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    transform: translateY(-110%);
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 990;
     opacity: 0;
     pointer-events: none;
-    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
-    z-index: 980;
-    will-change: transform, opacity;
+    transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.vl-mobile-drawer.open {
-    transform: translateY(0);
+.vl-drawer-backdrop.open {
     opacity: 1;
     pointer-events: auto;
 }
 
-.vl-mobile-nav-link {
+.vl-mobile-drawer {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 340px;
+    max-width: 88vw;
+    height: 100dvh;
+    background: #0e0f14;
+    border-left: 1px solid rgba(255, 255, 255, 0.08);
+    z-index: 995;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 24px 20px 20px;
+    box-sizing: border-box;
+    transform: translateX(100%);
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: -16px 0 40px rgba(0, 0, 0, 0.8);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 20px 0 0 20px;
+}
+
+.vl-mobile-drawer.open {
+    transform: translateX(0);
+}
+
+.vl-drawer-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 14px 16px;
-    border-radius: var(--vl-radius-md);
-    color: var(--vl-text-secondary);
-    font-size: 1rem;
-    font-weight: 500;
-    text-decoration: none;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid transparent;
-    transition: color 0.2s ease, background-color 0.2s ease;
+    margin-bottom: 24px;
+    padding: 0 4px;
 }
 
-.vl-mobile-nav-link:hover, .vl-mobile-nav-link.active {
-    color: #ffffff;
+.vl-drawer-header .vl-wordmark {
+    font-size: 1.25rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+}
+
+.vl-drawer-close-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: transparent;
+    border: none;
+    color: #cbd5e1;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease, transform 0.15s ease;
+    padding: 0;
+}
+
+.vl-drawer-close-btn:hover {
     background: rgba(255, 255, 255, 0.08);
-    border-color: var(--vl-border-subtle);
+    color: #ffffff;
+}
+
+.vl-drawer-close-btn:active {
+    transform: scale(0.94);
+}
+
+.vl-drawer-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    position: relative;
+    margin-bottom: auto;
+}
+
+.vl-mobile-nav-link {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 13px 12px;
+    border-radius: 10px;
+    color: #cbd5e1;
+    font-size: 0.96875rem;
+    font-weight: 500;
+    text-decoration: none;
+    background: transparent;
+    transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+.vl-mobile-nav-link svg {
+    width: 20px;
+    height: 20px;
+    color: #94a3b8;
+    stroke-width: 1.9;
+    flex-shrink: 0;
+    transition: color 0.15s ease, stroke 0.15s ease;
+}
+
+.vl-mobile-nav-link:hover {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.vl-mobile-nav-link:hover svg {
+    color: #ffffff;
+}
+
+/* Subtle left accent bar for active page */
+.vl-mobile-nav-link::before {
+    content: '';
+    position: absolute;
+    left: -20px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3.5px;
+    height: 28px;
+    background: #e11d48;
+    border-radius: 0 4px 4px 0;
+    opacity: 0;
+    transition: opacity 0.2s ease;
 }
 
 .vl-mobile-nav-link.active {
+    color: #ef4444;
     font-weight: 600;
+    background: transparent;
+}
+
+.vl-mobile-nav-link.active::before {
+    opacity: 1;
+}
+
+.vl-mobile-nav-link.active svg {
+    color: #ef4444;
+    stroke: #ef4444;
+}
+
+.vl-mobile-nav-link.active span {
+    color: #ef4444;
+}
+
+/* Drawer Action Buttons */
+.vl-drawer-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 24px;
+    margin-bottom: 16px;
+}
+
+.vl-drawer-login-btn {
+    width: 100%;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 12px;
+    color: #ffffff;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    text-decoration: none;
+    box-sizing: border-box;
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+}
+
+.vl-drawer-login-btn svg {
+    width: 18px;
+    height: 18px;
+    color: #ffffff;
+    flex-shrink: 0;
+}
+
+.vl-drawer-login-btn:hover {
+    background: rgba(255, 255, 255, 0.07);
+    border-color: rgba(255, 255, 255, 0.24);
+}
+
+.vl-drawer-login-btn:active {
+    transform: scale(0.98);
+}
+
+.vl-drawer-cta-btn {
+    width: 100%;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: #e11d48;
+    background: linear-gradient(135deg, #e11d48 0%, #dc2626 100%);
+    border: none;
+    border-radius: 12px;
+    color: #ffffff;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    text-decoration: none;
+    box-shadow: 0 4px 16px rgba(225, 29, 72, 0.35);
+    box-sizing: border-box;
+    cursor: pointer;
+    transition: background-color 0.15s ease, transform 0.1s ease, box-shadow 0.2s ease;
+}
+
+.vl-drawer-cta-btn svg {
+    width: 18px;
+    height: 18px;
+    color: #ffffff;
+    fill: #ffffff;
+    flex-shrink: 0;
+}
+
+.vl-drawer-cta-btn:hover {
+    background: #f43f5e;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(225, 29, 72, 0.45);
+}
+
+.vl-drawer-cta-btn:active {
+    transform: scale(0.98);
+}
+
+/* Drawer Footer Badges */
+.vl-drawer-footer-badges {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 14px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    font-size: 0.75rem;
+    color: #94a3b8;
+    font-weight: 500;
+    gap: 8px;
+}
+
+.vl-drawer-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #94a3b8;
+}
+
+.vl-drawer-badge svg {
+    width: 14px;
+    height: 14px;
+    color: #94a3b8;
+    stroke-width: 2;
+    flex-shrink: 0;
+}
+
+.vl-drawer-badge.vl-badge-encrypted svg {
+    color: #10b981;
+    stroke: #10b981;
 }
 
 /* Inputs and Modals */
@@ -1029,6 +1251,110 @@ body {
 .vl-modal-close-btn:hover {
     background: rgba(255, 255, 255, 0.14);
     color: #ffffff;
+}
+
+/* ==========================================================================
+   Global Footer System
+   ========================================================================== */
+.vl-footer {
+    background: #060608;
+    border-top: 1px solid var(--vl-border-subtle);
+    padding: 64px 20px 32px;
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+@media (min-width: 768px) {
+    .vl-footer {
+        padding: 72px 32px 36px;
+    }
+}
+
+@media (min-width: 1024px) {
+    .vl-footer {
+        padding: 80px 40px 40px;
+    }
+}
+
+@media (min-width: 1280px) {
+    .vl-footer {
+        padding: 88px 48px 44px;
+    }
+}
+
+.footer-content {
+    max-width: var(--vl-max-width);
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 40px;
+}
+
+@media (min-width: 768px) {
+    .footer-content {
+        grid-template-columns: 2fr 1fr 1fr 1fr;
+        gap: 48px;
+    }
+}
+
+.footer-brand p {
+    color: #94a3b8;
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    margin-top: 12px;
+    max-width: 320px;
+}
+
+.footer-col h3,
+.footer-col .footer-col-title {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #ffffff;
+    margin: 0 0 16px;
+}
+
+.footer-col ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.footer-col a {
+    color: var(--vl-text-secondary);
+    font-size: 0.875rem;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.footer-col a:hover {
+    color: #ffffff;
+}
+
+.footer-bottom {
+    max-width: var(--vl-max-width);
+    margin: 48px auto 0;
+    padding-top: 24px;
+    border-top: 1px solid var(--vl-border-subtle);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    color: var(--vl-text-muted);
+    font-size: 0.8125rem;
+}
+
+@media (min-width: 640px) {
+    .footer-bottom {
+        flex-direction: row;
+    }
 }
 
 /* Core Production Atomic Utilities (Replaces Tailwind CDN completely) */

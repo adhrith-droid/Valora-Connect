@@ -5,14 +5,75 @@
 
 document.addEventListener('DOMContentLoaded', () => {
     initValoraHeader();
+    syncActiveNavigation();
     initAuthState();
 });
 
 let currentUserData = null;
 
+function normalizeCurrentPath() {
+    let path = window.location.pathname.toLowerCase();
+    if (path.endsWith('.html')) {
+        path = path.replace('.html', '');
+    }
+    if (path === '' || path === '/index') {
+        path = '/';
+    }
+    return path;
+}
+
+function syncActiveNavigation() {
+    const currentPath = normalizeCurrentPath();
+
+    // Sync desktop navigation items
+    document.querySelectorAll('.vl-nav-links .vl-nav-item').forEach(item => {
+        const href = item.getAttribute('href');
+        if (!href) return;
+        const normalizedHref = href.toLowerCase().replace('.html', '');
+        
+        if (currentPath === '/' && (normalizedHref === '/' || normalizedHref === '/index')) {
+            item.classList.add('active');
+        } else if (currentPath !== '/' && normalizedHref === currentPath) {
+            item.classList.add('active');
+        } else {
+            item.classList.remove('active');
+        }
+    });
+
+    // Sync mobile navigation links
+    document.querySelectorAll('#vl-mobile-drawer .vl-mobile-nav-link').forEach(link => {
+        const href = link.getAttribute('href');
+        if (!href || href === '#') return;
+        const normalizedHref = href.toLowerCase().replace('.html', '');
+
+        if (currentPath === '/' && (normalizedHref === '/' || normalizedHref === '/index')) {
+            link.classList.add('active');
+        } else if (currentPath !== '/' && normalizedHref === currentPath) {
+            link.classList.add('active');
+        } else {
+            link.classList.remove('active');
+        }
+    });
+}
+
 function initValoraHeader() {
     const mobileToggle = document.getElementById('vl-mobile-toggle');
     const mobileDrawer = document.getElementById('vl-mobile-drawer');
+
+    // Ensure backdrop element exists
+    let backdrop = document.getElementById('vl-drawer-backdrop');
+    if (!backdrop) {
+        backdrop = document.createElement('div');
+        backdrop.id = 'vl-drawer-backdrop';
+        backdrop.className = 'vl-drawer-backdrop';
+        document.body.appendChild(backdrop);
+    }
+
+    if (backdrop) {
+        backdrop.addEventListener('click', () => {
+            closeMobileDrawer();
+        });
+    }
 
     if (mobileToggle && mobileDrawer) {
         mobileToggle.addEventListener('click', (e) => {
@@ -29,6 +90,22 @@ function initValoraHeader() {
                 closeMobileDrawer();
             }
         });
+
+        // Close drawer when a navigation link is clicked
+        mobileDrawer.querySelectorAll('.vl-mobile-nav-link').forEach(link => {
+            link.addEventListener('click', () => {
+                closeMobileDrawer();
+            });
+        });
+
+        // Close button inside drawer
+        const closeBtn = document.getElementById('vl-drawer-close');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                closeMobileDrawer();
+            });
+        }
     }
 
     // Global escape key listener to close active overlays
@@ -53,34 +130,31 @@ function initValoraHeader() {
 function toggleMobileDrawer() {
     const mobileToggle = document.getElementById('vl-mobile-toggle');
     const mobileDrawer = document.getElementById('vl-mobile-drawer');
+    const backdrop = document.getElementById('vl-drawer-backdrop');
     if (!mobileDrawer) return;
 
     const isOpen = mobileDrawer.classList.toggle('open');
+    if (backdrop) {
+        backdrop.classList.toggle('open', isOpen);
+    }
+
     if (mobileToggle) {
         mobileToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-        const iconSvg = mobileToggle.querySelector('svg');
-        if (iconSvg) {
-            if (isOpen) {
-                iconSvg.innerHTML = '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>';
-            } else {
-                iconSvg.innerHTML = '<line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/>';
-            }
-        }
     }
 }
 
 function closeMobileDrawer() {
     const mobileToggle = document.getElementById('vl-mobile-toggle');
     const mobileDrawer = document.getElementById('vl-mobile-drawer');
+    const backdrop = document.getElementById('vl-drawer-backdrop');
     if (mobileDrawer && mobileDrawer.classList.contains('open')) {
         mobileDrawer.classList.remove('open');
-        if (mobileToggle) {
-            mobileToggle.setAttribute('aria-expanded', 'false');
-            const iconSvg = mobileToggle.querySelector('svg');
-            if (iconSvg) {
-                iconSvg.innerHTML = '<line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/>';
-            }
-        }
+    }
+    if (backdrop && backdrop.classList.contains('open')) {
+        backdrop.classList.remove('open');
+    }
+    if (mobileToggle) {
+        mobileToggle.setAttribute('aria-expanded', 'false');
     }
 }
 
@@ -268,58 +342,88 @@ function initAuthState() {
             // ----------------------------------------------------
             if (mobileDrawer) {
                 mobileDrawer.innerHTML = `
-                    <div class="vl-drawer-user-card">
-                        <div class="vl-drawer-user-avatar">
-                            ${userAvatar ? `<img src="${userAvatar}" alt="${userName}" referrerpolicy="no-referrer">` : `<span>${initial}</span>`}
-                        </div>
-                        <div class="vl-drawer-user-info">
-                            <span class="vl-drawer-user-name">${userName}</span>
-                            ${userEmail ? `<span class="vl-drawer-user-email">${userEmail}</span>` : ''}
-                        </div>
+                    <div class="vl-drawer-header">
+                        <a href="/" class="vl-wordmark" aria-label="VALORA Home">
+                            <span>VALORA</span><span class="vl-wordmark-dot"></span>
+                        </a>
+                        <button type="button" id="vl-drawer-close" class="vl-drawer-close-btn" aria-label="Close Navigation Menu">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="18" y1="6" x2="6" y2="18"/>
+                                <line x1="6" y1="6" x2="18" y2="18"/>
+                            </svg>
+                        </button>
                     </div>
 
-                    <a href="/" class="vl-mobile-nav-link active">
-                        <span>Home</span>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
-                    </a>
-                    <a href="/messages" class="vl-mobile-nav-link" id="mobile-drawer-messages-link">
-                        <span>Messages</span>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
-                    </a>
-                    <a href="#" class="vl-mobile-nav-link vl-nav-placeholder" data-feature="Discover">
-                        <span>Discover</span>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
-                    </a>
-                    <a href="#" class="vl-mobile-nav-link vl-nav-placeholder" data-feature="Live">
-                        <span>Live Streams</span>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
-                    </a>
+                    <nav class="vl-drawer-nav" aria-label="Mobile Menu Links">
+                        <a href="/" class="vl-mobile-nav-link">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                            <span>Home</span>
+                        </a>
+                        <a href="/chat" class="vl-mobile-nav-link">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 8-6 4 6 4V8Z"/><rect width="14" height="12" x="2" y="6" rx="2" ry="2"/></svg>
+                            <span>Video Chat</span>
+                        </a>
+                        <a href="/messages" class="vl-mobile-nav-link" id="mobile-drawer-messages-link">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                            <span>Messages</span>
+                        </a>
+                        <a href="/contact" class="vl-mobile-nav-link">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg>
+                            <span>Support</span>
+                        </a>
+                        <a href="/privacy" class="vl-mobile-nav-link">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                            <span>Privacy Policy</span>
+                        </a>
+                        <a href="/terms" class="vl-mobile-nav-link">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><line x1="10" x2="8" y1="9" y2="9"/></svg>
+                            <span>Terms & Community Rules</span>
+                        </a>
+                    </nav>
 
-                    <div class="vl-drawer-divider"></div>
+                    <div class="vl-drawer-actions">
+                        <button type="button" class="vl-drawer-login-btn" id="mobile-menu-profile">
+                            <div class="vl-profile-avatar-wrap" style="width: 22px; height: 22px; flex-shrink: 0;">
+                                ${userAvatar ? `<img src="${userAvatar}" alt="${userName}" referrerpolicy="no-referrer">` : `<span style="font-size: 0.75rem;">${initial}</span>`}
+                            </div>
+                            <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${userName}</span>
+                        </button>
+                        <a href="/chat" class="vl-drawer-cta-btn vl-drawer-connect-btn" id="drawer-connect-btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                            <span>Start Connecting</span>
+                        </a>
+                    </div>
 
-                    <button type="button" class="vl-drawer-item" id="mobile-menu-profile">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
-                        </svg>
-                        <span>My Profile</span>
-                    </button>
-
-                    <button type="button" class="vl-drawer-item" id="mobile-menu-settings">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-                        </svg>
-                        <span>Settings</span>
-                    </button>
-
-                    <div class="vl-drawer-divider"></div>
-
-                    <a href="/api/auth/logout" class="vl-drawer-item vl-drawer-item-danger" id="mobile-menu-logout">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/>
-                        </svg>
-                        <span>Log Out</span>
-                    </a>
+                    <div class="vl-drawer-footer-badges">
+                        <div class="vl-drawer-badge">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg>
+                            <span>18+ Age Restricted</span>
+                        </div>
+                        <div class="vl-drawer-badge vl-badge-encrypted">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                            <span>End-to-End Encrypted</span>
+                        </div>
+                    </div>
                 `;
+
+                // Sync active nav item on mobile drawer
+                syncActiveNavigation();
+
+                // Close drawer when link clicked
+                mobileDrawer.querySelectorAll('.vl-mobile-nav-link').forEach(link => {
+                    link.addEventListener('click', () => {
+                        closeMobileDrawer();
+                    });
+                });
+
+                // Close button listener
+                const closeBtn = mobileDrawer.querySelector('#vl-drawer-close');
+                if (closeBtn) {
+                    closeBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        closeMobileDrawer();
+                    });
+                }
 
                 // Bind drawer listeners
                 mobileDrawer.querySelector('#mobile-menu-profile').addEventListener('click', () => {
@@ -330,15 +434,6 @@ function initAuthState() {
                 mobileDrawer.querySelector('#mobile-menu-settings').addEventListener('click', () => {
                     closeMobileDrawer();
                     openSettingsModal();
-                });
-
-                mobileDrawer.querySelectorAll('.vl-nav-placeholder').forEach(link => {
-                    link.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        closeMobileDrawer();
-                        const featureName = link.getAttribute('data-feature') || 'This section';
-                        showPlaceholderToast(`${featureName} will be available in the upcoming release.`);
-                    });
                 });
             }
 

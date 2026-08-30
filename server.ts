@@ -114,9 +114,24 @@ interface BanItem {
   bannedAt: Date;
 }
 
+interface ContactMessage {
+  _id: string;
+  id: string;
+  ticketId: string;
+  name: string;
+  email: string;
+  category: string;
+  subject: string;
+  message: string;
+  ip: string;
+  createdAt: Date;
+  status: string;
+}
+
 const inMemoryReports: ReportItem[] = [];
 const inMemoryBans: BanItem[] = [];
 const inMemoryUsers: AuthUser[] = [];
+const inMemoryContactMessages: ContactMessage[] = [];
 
 // Neon PostgreSQL Database Configuration
 const databaseUrl = process.env.DATABASE_URL || process.env.DATABESE_URL;
@@ -200,8 +215,33 @@ async function runDatabaseMigrations() {
     await pool.query(`ALTER TABLE bans ADD COLUMN IF NOT EXISTS reason VARCHAR(255) DEFAULT 'Admin Ban';`);
     await pool.query(`ALTER TABLE bans ADD COLUMN IF NOT EXISTS banned_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP;`);
 
+    // 6. Ensure contact_messages table and columns exist
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS contact_messages (
+        id SERIAL PRIMARY KEY,
+        ticket_id VARCHAR(64) UNIQUE,
+        name VARCHAR(255) NOT NULL,
+        email VARCHAR(255) NOT NULL,
+        category VARCHAR(255) DEFAULT 'General Support',
+        subject VARCHAR(255) DEFAULT '',
+        message TEXT NOT NULL,
+        ip VARCHAR(128) DEFAULT 'unknown',
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        status VARCHAR(64) DEFAULT 'new'
+      );
+    `);
+    await pool.query(`ALTER TABLE contact_messages ADD COLUMN IF NOT EXISTS ticket_id VARCHAR(64);`);
+    await pool.query(`ALTER TABLE contact_messages ADD COLUMN IF NOT EXISTS name VARCHAR(255);`);
+    await pool.query(`ALTER TABLE contact_messages ADD COLUMN IF NOT EXISTS email VARCHAR(255);`);
+    await pool.query(`ALTER TABLE contact_messages ADD COLUMN IF NOT EXISTS category VARCHAR(255) DEFAULT 'General Support';`);
+    await pool.query(`ALTER TABLE contact_messages ADD COLUMN IF NOT EXISTS subject VARCHAR(255) DEFAULT '';`);
+    await pool.query(`ALTER TABLE contact_messages ADD COLUMN IF NOT EXISTS message TEXT DEFAULT '';`);
+    await pool.query(`ALTER TABLE contact_messages ADD COLUMN IF NOT EXISTS ip VARCHAR(128) DEFAULT 'unknown';`);
+    await pool.query(`ALTER TABLE contact_messages ADD COLUMN IF NOT EXISTS created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP;`);
+    await pool.query(`ALTER TABLE contact_messages ADD COLUMN IF NOT EXISTS status VARCHAR(64) DEFAULT 'new';`);
+
     isNeonConnected = true;
-    console.log("[Database Migration] SUCCESS: All tables and columns (users.google_id, reports, bans) are verified and up to date in Neon PostgreSQL.");
+    console.log("[Database Migration] SUCCESS: All tables and columns (users, reports, bans, contact_messages) are verified and up to date in Neon PostgreSQL.");
   } catch (err: any) {
     console.error("[Database Migration] ERROR: Failed to run database schema migrations:", err.message);
   }
@@ -315,6 +355,68 @@ app.post("/api/report", async (req, res) => {
   } catch (error) {
     console.error("Error saving report:", error);
     res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// Contact & Support Ticket Submission API
+app.post("/api/contact", async (req, res) => {
+  try {
+    const { name, email, category, subject, message } = req.body;
+
+    if (!name || typeof name !== 'string' || !name.trim()) {
+      return res.status(400).json({ error: "Name is required" });
+    }
+    if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
+      return res.status(400).json({ error: "Valid email address is required" });
+    }
+    if (!message || typeof message !== 'string' || !message.trim()) {
+      return res.status(400).json({ error: "Message is required" });
+    }
+
+    const clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown';
+    const ip = Array.isArray(clientIp) ? clientIp[0] : (clientIp.toString().split(',')[0].trim());
+    const ticketId = "VAL-" + Math.floor(10000 + Math.random() * 90000);
+    const cleanSubject = (subject || category || 'Support Request').trim().slice(0, 200);
+    const cleanCategory = (category || 'General Support').trim().slice(0, 100);
+    const cleanName = name.trim().slice(0, 100);
+    const cleanMessage = message.trim().slice(0, 3000);
+
+    if (isNeonConnected && pool) {
+      try {
+        await pool.query(
+          `INSERT INTO contact_messages (ticket_id, name, email, category, subject, message, ip, status)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+          [ticketId, cleanName, email.trim(), cleanCategory, cleanSubject, cleanMessage, ip, "new"]
+        );
+      } catch (err) {
+        console.warn("Failed saving contact message to Neon DB, fallback to memory:", err);
+      }
+    }
+
+    const memMsg: ContactMessage = {
+      _id: ticketId,
+      id: ticketId,
+      ticketId: ticketId,
+      name: cleanName,
+      email: email.trim(),
+      category: cleanCategory,
+      subject: cleanSubject,
+      message: cleanMessage,
+      ip: ip,
+      createdAt: new Date(),
+      status: "new"
+    };
+    inMemoryContactMessages.unshift(memMsg);
+
+    console.log(`[Contact Support] Received ticket ${ticketId} from ${email} (${cleanCategory})`);
+    res.status(200).json({ 
+      success: true, 
+      ticketId: "#" + ticketId,
+      message: "Your support request has been received. Our team will contact you at support@ryntly.in." 
+    });
+  } catch (error) {
+    console.error("Error processing contact submission:", error);
+    res.status(500).json({ error: "Failed to submit support request" });
   }
 });
 
@@ -926,6 +1028,9 @@ app.use((req, res, next) => {
   if (urlPath === '/terms.html') {
     return res.redirect(301, '/terms' + queryString);
   }
+  if (urlPath === '/contact.html' || urlPath === '/support' || urlPath === '/support.html') {
+    return res.redirect(301, '/contact' + queryString);
+  }
   next();
 });
 
@@ -938,6 +1043,15 @@ app.get("/", (req, res) => {
 app.get("/login", (req, res) => {
   res.setHeader("Cache-Control", "public, max-age=0, must-revalidate");
   res.sendFile(path.join(__dirname, "public/login.html"));
+});
+
+app.get("/contact", (req, res) => {
+  res.setHeader("Cache-Control", "public, max-age=0, must-revalidate");
+  res.sendFile(path.join(__dirname, "public/contact.html"));
+});
+
+app.get(["/support", "/help"], (req, res) => {
+  res.redirect(301, "/contact");
 });
 
 app.get("/sitemap.xml", (req, res) => {
