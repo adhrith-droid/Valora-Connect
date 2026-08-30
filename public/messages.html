@@ -153,132 +153,99 @@
 
         @media (min-width: 768px) {
             .msg-topbar {
-                padding: 0 24px;
+                padding: 0 28px;
             }
         }
 
         .topbar-left {
             display: flex;
             align-items: center;
-            gap: 16px;
-        }
-
-        .topbar-center {
-            display: flex;
-            align-items: center;
             gap: 12px;
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
-            max-width: 60%;
-        }
-
-        .partner-status-pill {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid var(--vl-border-subtle);
-            padding: 6px 14px;
-            border-radius: var(--vl-radius-full);
-            transition: var(--vl-transition-base);
-        }
-
-        .partner-avatar-wrap {
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.1);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--vl-text-secondary);
-            font-size: 0.75rem;
-            font-weight: 700;
-            flex-shrink: 0;
-            overflow: hidden;
-            border: 1px solid var(--vl-border-subtle);
-        }
-
-        .partner-info {
-            display: flex;
-            flex-direction: column;
-            line-height: 1.2;
-            text-align: left;
-        }
-
-        .partner-name {
-            font-size: 0.8125rem;
-            font-weight: 700;
-            color: #ffffff;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 140px;
-        }
-
-        .partner-state {
-            font-size: 0.6875rem;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            color: var(--vl-text-muted);
-            font-weight: 500;
-        }
-
-        .state-dot {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: #94a3b8;
-            flex-shrink: 0;
-        }
-
-        .state-dot.online {
-            background: #10b981;
-            box-shadow: 0 0 8px rgba(16, 185, 129, 0.7);
-        }
-
-        .state-dot.searching {
-            background: #f59e0b;
-            box-shadow: 0 0 8px rgba(245, 158, 11, 0.7);
-            animation: pulseSearching 1.5s infinite;
-        }
-
-        .state-dot.offline {
-            background: #ef4444;
-        }
-
-        @keyframes pulseSearching {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.4; transform: scale(1.3); }
         }
 
         .topbar-right {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
+        }
+
+        .header-btn-report {
+            height: 36px;
+            padding: 0 14px;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: var(--vl-text-secondary);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--vl-border-subtle);
+            border-radius: var(--vl-radius-full);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: var(--vl-transition-base);
+            text-decoration: none;
+            user-select: none;
+            box-sizing: border-box;
+        }
+
+        .header-btn-report:hover {
+            background: rgba(239, 68, 68, 0.12);
+            border-color: rgba(239, 68, 68, 0.35);
+            color: #fca5a5;
+            transform: translateY(-1px);
+        }
+
+        .header-btn-leave {
+            height: 36px;
+            padding: 0 16px;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: var(--vl-text-primary);
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid var(--vl-border-medium);
+            border-radius: var(--vl-radius-full);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: var(--vl-transition-base);
+            text-decoration: none;
+            user-select: none;
+            box-sizing: border-box;
+        }
+
+        .header-btn-leave:hover {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: var(--vl-border-strong);
+            color: #ffffff;
+            transform: translateY(-1px);
+        }
+
+        .header-btn-report:active,
+        .header-btn-leave:active {
+            transform: scale(0.97);
+        }
+
+        .header-btn-report svg {
+            color: #f87171;
+            flex-shrink: 0;
         }
 
         @media (max-width: 640px) {
-            .partner-status-pill {
-                padding: 4px 10px;
+            .topbar-right {
                 gap: 8px;
             }
-            .partner-avatar-wrap {
-                width: 24px;
-                height: 24px;
-                font-size: 0.6875rem;
-            }
-            .partner-name {
+            .header-btn-report {
+                padding: 0 12px;
                 font-size: 0.75rem;
-                max-width: 90px;
+                height: 34px;
             }
-            .partner-state {
-                font-size: 0.625rem;
-            }
-            .topbar-right .btn-text-label {
-                display: none;
+            .header-btn-leave {
+                padding: 0 14px;
+                font-size: 0.75rem;
+                height: 34px;
             }
         }
 
@@ -321,20 +288,21 @@
             background: linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.01) 100%), #111116;
             border: 1px solid var(--vl-border-subtle);
             border-radius: var(--vl-radius-lg);
-            padding: 20px;
+            padding: 20px 24px;
             text-align: center;
             margin: 0 auto 12px;
             max-width: 520px;
             width: 100%;
             box-sizing: border-box;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            animation: msgFadeIn 0.25s ease-out;
         }
 
         .welcome-title {
-            font-size: 1rem;
+            font-size: 1.05rem;
             font-weight: 700;
             color: #ffffff;
-            margin: 0 0 6px;
+            margin: 0 0 8px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -342,31 +310,10 @@
         }
 
         .welcome-desc {
-            font-size: 0.8125rem;
+            font-size: 0.875rem;
             color: var(--vl-text-secondary);
-            margin: 0 0 14px;
-            line-height: 1.5;
-        }
-
-        .welcome-tags {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .welcome-tag {
-            font-size: 0.6875rem;
-            font-weight: 600;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--vl-border-subtle);
-            padding: 4px 10px;
-            border-radius: var(--vl-radius-full);
-            color: #cbd5e1;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
+            margin: 0;
+            line-height: 1.55;
         }
 
         /* System Notification Pill */
@@ -572,75 +519,28 @@
         .dock-container {
             max-width: 900px;
             margin: 0 auto;
+            width: 100%;
+        }
+
+        .dock-form {
             display: flex;
             align-items: center;
             gap: 10px;
-        }
-
-        .btn-skip-stranger {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--vl-border-medium);
-            color: #ffffff;
-            padding: 10px 16px;
-            height: 46px;
-            border-radius: var(--vl-radius-md);
-            font-size: 0.875rem;
-            font-weight: 700;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-            transition: var(--vl-transition-base);
-            flex-shrink: 0;
-            white-space: nowrap;
-            user-select: none;
-        }
-
-        .btn-skip-stranger:hover {
-            background: var(--vl-accent);
-            border-color: var(--vl-accent);
-            box-shadow: 0 0 16px var(--vl-accent-glow);
-            transform: translateY(-1px);
-        }
-
-        .btn-skip-stranger:active {
-            transform: translateY(0);
-        }
-
-        .skip-shortcut-badge {
-            background: rgba(0, 0, 0, 0.35);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            font-size: 0.6875rem;
-            padding: 1px 6px;
-            border-radius: 4px;
-            color: #cbd5e1;
-            font-weight: 600;
-        }
-
-        @media (max-width: 640px) {
-            .skip-shortcut-badge {
-                display: none;
-            }
-            .btn-skip-stranger {
-                padding: 10px 12px;
-                font-size: 0.8125rem;
-            }
+            width: 100%;
         }
 
         .msg-input-wrap {
             flex: 1;
+            min-width: 0;
             position: relative;
-            display: flex;
-            align-items: center;
         }
 
         .msg-text-input {
             width: 100%;
-            background: #18181f;
-            border: 1px solid var(--vl-border-subtle);
-            border-radius: var(--vl-radius-md);
-            padding: 12px 18px;
-            padding-right: 50px;
+            background: #14141a;
+            border: 1px solid var(--vl-border-medium);
+            border-radius: var(--vl-radius-full);
+            padding: 12px 20px;
             color: #ffffff;
             font-size: 0.9375rem;
             outline: none;
@@ -649,44 +549,122 @@
             font-family: inherit;
         }
 
+        .msg-text-input::placeholder {
+            color: #64748b;
+        }
+
         .msg-text-input:focus {
-            border-color: var(--vl-accent);
-            background: #20202a;
-            box-shadow: 0 0 0 3px var(--vl-accent-subtle);
+            border-color: rgba(255, 255, 255, 0.28);
+            background: #191922;
+            box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.08);
         }
 
         .msg-text-input:disabled {
             opacity: 0.5;
             cursor: not-allowed;
-            background: #121216;
+            background: #101014;
         }
 
-        .btn-send-msg {
-            position: absolute;
-            right: 6px;
-            background: var(--vl-accent);
-            color: #ffffff;
-            width: 36px;
-            height: 36px;
-            border-radius: var(--vl-radius-sm);
-            display: flex;
+        /* Dynamic Next / Send Action Button */
+        .dock-action-btn {
+            display: inline-flex;
             align-items: center;
             justify-content: center;
-            border: none;
             cursor: pointer;
-            transition: var(--vl-transition-base);
+            border: none;
+            user-select: none;
+            box-sizing: border-box;
+            outline: none;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
             flex-shrink: 0;
         }
 
-        .btn-send-msg:hover:not(:disabled) {
-            background: var(--vl-accent-hover);
-            transform: scale(1.05);
+        /* State: Next Button (when text box is empty) */
+        .dock-action-btn.btn-state-next {
+            height: 44px;
+            padding: 0 18px;
+            border-radius: var(--vl-radius-full);
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid var(--vl-border-medium);
+            color: #ffffff;
+            font-size: 0.875rem;
+            font-weight: 600;
+            gap: 7px;
         }
 
-        .btn-send-msg:disabled {
-            opacity: 0.35;
-            cursor: not-allowed;
-            background: #2a2a34;
+        .dock-action-btn.btn-state-next:hover {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: var(--vl-border-strong);
+            color: #ffffff;
+            transform: translateY(-1px);
+        }
+
+        .dock-action-btn.btn-state-next:active {
+            transform: scale(0.97);
+        }
+
+        .dock-action-btn.btn-state-next .btn-content-next {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+        }
+
+        .dock-action-btn.btn-state-next .btn-content-send {
+            display: none;
+        }
+
+        /* State: Send Button (when text box has input) */
+        .dock-action-btn.btn-state-send {
+            height: 44px;
+            width: 44px;
+            min-width: 44px;
+            padding: 0;
+            border-radius: 50%;
+            background: var(--vl-accent);
+            border: 1px solid var(--vl-accent);
+            color: #ffffff;
+            box-shadow: var(--vl-shadow-glow);
+        }
+
+        .dock-action-btn.btn-state-send:hover {
+            background: var(--vl-accent-hover);
+            border-color: var(--vl-accent-hover);
+            box-shadow: var(--vl-shadow-glow-lg);
+            transform: scale(1.06);
+        }
+
+        .dock-action-btn.btn-state-send:active {
+            transform: scale(0.94);
+        }
+
+        .dock-action-btn.btn-state-send .btn-content-next {
+            display: none;
+        }
+
+        .dock-action-btn.btn-state-send .btn-content-send {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @media (max-width: 640px) {
+            .dock-form {
+                gap: 8px;
+            }
+            .msg-text-input {
+                padding: 10px 16px;
+                font-size: 0.875rem;
+            }
+            .dock-action-btn.btn-state-next {
+                height: 40px;
+                padding: 0 14px;
+                font-size: 0.8125rem;
+            }
+            .dock-action-btn.btn-state-send {
+                height: 40px;
+                width: 40px;
+                min-width: 40px;
+            }
         }
 
         /* Report & Ban Modals */
@@ -777,40 +755,18 @@
             <a href="/" class="vl-wordmark" aria-label="VALORA Home">
                 <span>VALORA</span><span class="vl-wordmark-dot"></span>
             </a>
-            <span class="vl-badge vl-badge-subtle" style="font-size: 11px; padding: 2px 8px;">Text Chat</span>
-        </div>
-
-        <div class="topbar-center">
-            <div class="partner-status-pill" id="partner-status-pill">
-                <div class="partner-avatar-wrap" id="partner-avatar-wrap">
-                    <span id="partner-avatar-initial">?</span>
-                </div>
-                <div class="partner-info">
-                    <span class="partner-name" id="partner-display-name">Stranger</span>
-                    <div class="partner-state">
-                        <span class="state-dot searching" id="partner-state-dot"></span>
-                        <span id="partner-state-text">Searching...</span>
-                    </div>
-                </div>
-            </div>
         </div>
 
         <div class="topbar-right">
-            <!-- Switch to Video Chat Button -->
-            <a href="/chat" class="vl-btn vl-btn-secondary" style="padding: 6px 12px; font-size: 0.8125rem;" title="Switch to Video & Audio Chat">
-                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5"/><rect x="2" y="6" width="14" height="12" rx="2"/></svg>
-                <span class="btn-text-label">Video</span>
-            </a>
-
             <!-- Report Button -->
-            <button id="report-btn" class="vl-btn vl-btn-secondary" style="padding: 6px 12px; font-size: 0.8125rem;" title="Report Stranger">
-                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-red-400"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
-                <span class="btn-text-label">Report</span>
+            <button type="button" id="report-btn" class="header-btn-report" title="Report Stranger">
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+                <span>Report</span>
             </button>
 
             <!-- Leave Button -->
-            <a href="/" class="vl-btn vl-btn-secondary" style="padding: 6px 14px; font-size: 0.8125rem; border-radius: var(--vl-radius-full);">
-                Leave
+            <a href="/" class="header-btn-leave" title="Leave Chat">
+                <span>Leave</span>
             </a>
         </div>
     </header>
@@ -818,18 +774,13 @@
     <!-- Main Workspace -->
     <main class="msg-workspace">
         <div class="msg-stream" id="msg-stream">
-            <!-- Welcome Safety Card -->
+            <!-- Welcome Safety Card (Visible only while searching) -->
             <div class="msg-welcome-card" id="welcome-safety-card">
                 <h2 class="welcome-title">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--vl-accent);"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                     <span>Stranger Text Chat</span>
                 </h2>
                 <p class="welcome-desc">You are connected to VALORA's random text matching network. Chat freely and meet people worldwide.</p>
-                <div class="welcome-tags">
-                    <span class="welcome-tag">🔒 End-to-End Realtime</span>
-                    <span class="welcome-tag">🚫 No Personal Data Sharing</span>
-                    <span class="welcome-tag">⚠️ 18+ Strictly Enforced</span>
-                </div>
             </div>
 
             <!-- Waiting / Searching State (Visible when searching) -->
@@ -859,25 +810,30 @@
         <!-- Bottom Controls & Input Dock -->
         <footer class="msg-dock">
             <div class="dock-container">
-                <!-- Skip / Next Stranger Button -->
-                <button type="button" id="skip-btn" class="btn-skip-stranger" title="Find next stranger (Esc)">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" x2="19" y1="5" y2="19"/></svg>
-                    <span>Next</span>
-                    <span class="skip-shortcut-badge">Esc</span>
-                </button>
+                <!-- Message Form with Dynamic Next / Send Action -->
+                <form id="msg-form" class="dock-form" onsubmit="return false;">
+                    <div class="msg-input-wrap">
+                        <input 
+                            type="text" 
+                            id="msg-input" 
+                            class="msg-text-input" 
+                            placeholder="Message" 
+                            maxlength="1000" 
+                            autocomplete="off"
+                            disabled>
+                    </div>
 
-                <!-- Input Field Wrap -->
-                <form id="msg-form" class="msg-input-wrap" onsubmit="return false;">
-                    <input 
-                        type="text" 
-                        id="msg-input" 
-                        class="msg-text-input" 
-                        placeholder="Type a message... (Press Enter to send)" 
-                        maxlength="1000" 
-                        autocomplete="off"
-                        disabled>
-                    <button type="submit" id="send-btn" class="btn-send-msg" title="Send message" disabled>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                    <!-- Dynamic Action Button: Next when empty / Send when text entered -->
+                    <button type="button" id="dock-action-btn" class="dock-action-btn btn-state-next" title="Next (Esc)">
+                        <!-- Next State View -->
+                        <span class="btn-content-next">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" x2="19" y1="5" y2="19"/></svg>
+                            <span class="btn-next-label">Next</span>
+                        </span>
+                        <!-- Send State View -->
+                        <span class="btn-content-send">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                        </span>
                     </button>
                 </form>
             </div>
@@ -949,15 +905,11 @@
             const msgStream = document.getElementById('msg-stream');
             const messagesContainer = document.getElementById('messages-container');
             const msgInput = document.getElementById('msg-input');
-            const sendBtn = document.getElementById('send-btn');
+            const dockActionBtn = document.getElementById('dock-action-btn');
             const msgForm = document.getElementById('msg-form');
-            const skipBtn = document.getElementById('skip-btn');
+            const welcomeSafetyCard = document.getElementById('welcome-safety-card');
             const waitingStateBox = document.getElementById('waiting-state-box');
             const typingIndicator = document.getElementById('typing-indicator');
-            const partnerDisplayName = document.getElementById('partner-display-name');
-            const partnerStateDot = document.getElementById('partner-state-dot');
-            const partnerStateText = document.getElementById('partner-state-text');
-            const partnerAvatarInitial = document.getElementById('partner-avatar-initial');
             const reportBtn = document.getElementById('report-btn');
             const reportModal = document.getElementById('report-modal');
             const closeReportModal = document.getElementById('close-report-modal');
@@ -1000,34 +952,45 @@
                 return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             }
 
+            function updateActionButtonState() {
+                if (!dockActionBtn) return;
+                const hasText = msgInput && msgInput.value.trim().length > 0;
+                
+                if (hasText && isConnectedToPartner) {
+                    dockActionBtn.classList.remove('btn-state-next');
+                    dockActionBtn.classList.add('btn-state-send');
+                    dockActionBtn.title = 'Send message (Enter)';
+                    dockActionBtn.setAttribute('aria-label', 'Send message');
+                } else {
+                    dockActionBtn.classList.remove('btn-state-send');
+                    dockActionBtn.classList.add('btn-state-next');
+                    dockActionBtn.title = 'Next stranger (Esc)';
+                    dockActionBtn.setAttribute('aria-label', 'Next stranger');
+                }
+            }
+
             function setPartnerStatus(state, name = 'Stranger') {
                 currentPartnerName = name;
-                partnerDisplayName.textContent = name;
-                partnerAvatarInitial.textContent = name.charAt(0).toUpperCase();
 
                 if (state === 'searching') {
-                    partnerStateDot.className = 'state-dot searching';
-                    partnerStateText.textContent = 'Searching...';
-                    partnerDisplayName.textContent = 'Looking for someone...';
-                    waitingStateBox.style.display = 'flex';
+                    if (welcomeSafetyCard) welcomeSafetyCard.style.display = 'block';
+                    if (waitingStateBox) waitingStateBox.style.display = 'flex';
                     msgInput.disabled = true;
-                    sendBtn.disabled = true;
+                    msgInput.value = '';
                     isConnectedToPartner = false;
+                    updateActionButtonState();
                 } else if (state === 'connected') {
-                    partnerStateDot.className = 'state-dot online';
-                    partnerStateText.textContent = 'Connected';
-                    partnerDisplayName.textContent = name;
-                    waitingStateBox.style.display = 'none';
+                    if (welcomeSafetyCard) welcomeSafetyCard.style.display = 'none';
+                    if (waitingStateBox) waitingStateBox.style.display = 'none';
                     msgInput.disabled = false;
-                    sendBtn.disabled = false;
                     isConnectedToPartner = true;
+                    updateActionButtonState();
                     msgInput.focus();
                 } else if (state === 'disconnected') {
-                    partnerStateDot.className = 'state-dot offline';
-                    partnerStateText.textContent = 'Disconnected';
                     msgInput.disabled = true;
-                    sendBtn.disabled = true;
+                    msgInput.value = '';
                     isConnectedToPartner = false;
+                    updateActionButtonState();
                 }
             }
 
@@ -1157,7 +1120,15 @@
                 socket.emit('text-stopped-typing');
 
                 msgInput.value = '';
+                updateActionButtonState();
                 msgInput.focus();
+            }
+
+            function handleNextStranger() {
+                if (socket) {
+                    socket.emit('leave-text-chat');
+                }
+                findNewStranger();
             }
 
             // Input handlers
@@ -1167,6 +1138,7 @@
             });
 
             msgInput.addEventListener('input', () => {
+                updateActionButtonState();
                 if (!socket || !isConnectedToPartner) return;
                 socket.emit('text-typing');
                 clearTimeout(typingTimeout);
@@ -1175,13 +1147,17 @@
                 }, 1500);
             });
 
-            // Skip / Next stranger handler
-            skipBtn.addEventListener('click', () => {
-                if (socket) {
-                    socket.emit('leave-text-chat');
-                }
-                findNewStranger();
-            });
+            // Action button (Send if text exists, Next if empty)
+            if (dockActionBtn) {
+                dockActionBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    if (dockActionBtn.classList.contains('btn-state-send')) {
+                        sendMessage();
+                    } else {
+                        handleNextStranger();
+                    }
+                });
+            }
 
             // Keyboard Shortcuts: ESC to Skip, Enter to Send
             document.addEventListener('keydown', (e) => {
@@ -1189,7 +1165,7 @@
                     if (reportModal && reportModal.style.display === 'flex') {
                         closeReportModalFn();
                     } else {
-                        skipBtn.click();
+                        handleNextStranger();
                     }
                 }
             });

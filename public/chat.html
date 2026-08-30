@@ -171,34 +171,82 @@
         }
 
         .chat-header-report-btn {
+            height: 36px;
+            padding: 0 14px;
             font-size: 0.8125rem;
+            font-weight: 600;
+            color: var(--vl-text-secondary);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--vl-border-subtle);
             border-radius: var(--vl-radius-full);
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            transition: all var(--vl-transition-fast);
+            gap: 6px;
+            cursor: pointer;
+            transition: var(--vl-transition-base);
+            text-decoration: none;
+            user-select: none;
+            box-sizing: border-box;
+        }
+
+        .chat-header-leave-btn {
+            height: 36px;
+            padding: 0 16px;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: var(--vl-text-primary);
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid var(--vl-border-medium);
+            border-radius: var(--vl-radius-full);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: var(--vl-transition-base);
+            text-decoration: none;
+            user-select: none;
+            box-sizing: border-box;
+        }
+
+        .chat-header-report-btn:hover {
+            background: rgba(239, 68, 68, 0.12);
+            border-color: rgba(239, 68, 68, 0.35);
+            color: #fca5a5;
+            transform: translateY(-1px);
+        }
+
+        .chat-header-leave-btn:hover {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: var(--vl-border-strong);
+            color: #ffffff;
+            transform: translateY(-1px);
+        }
+
+        .chat-header-report-btn:active,
+        .chat-header-leave-btn:active {
+            transform: scale(0.97);
+        }
+
+        .chat-header-report-btn svg {
+            color: #f87171;
+            flex-shrink: 0;
         }
 
         @media (max-width: 640px) {
+            .chat-topbar-right {
+                gap: 8px;
+            }
             .chat-header-report-btn {
-                width: 36px !important;
-                height: 36px !important;
-                min-width: 36px !important;
-                padding: 0 !important;
-                border-radius: 50% !important;
+                padding: 0 12px;
+                font-size: 0.75rem;
+                height: 34px;
             }
-            .chat-header-report-btn .report-text {
-                display: none !important;
-            }
-        }
-
-        @media (min-width: 641px) {
-            .chat-header-report-btn {
-                padding: 6px 14px !important;
-                gap: 6px;
-            }
-            .chat-header-report-btn .report-text {
-                display: inline;
+            .chat-header-leave-btn {
+                padding: 0 14px;
+                font-size: 0.75rem;
+                height: 34px;
             }
         }
 
@@ -840,12 +888,12 @@
             </a>
         </div>
         <div class="chat-topbar-right">
-            <button id="header-report-btn" class="vl-btn vl-btn-secondary chat-header-report-btn" title="Report user">
-                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-red-400 flex-shrink-0"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
-                <span class="report-text">Report</span>
+            <button type="button" id="header-report-btn" class="chat-header-report-btn" title="Report user">
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+                <span>Report</span>
             </button>
-            <a href="/" class="vl-btn vl-btn-secondary text-xs" style="font-size: 0.8125rem; padding: 6px 16px; border-radius: var(--vl-radius-full);">
-                Leave
+            <a href="/" class="chat-header-leave-btn" title="Leave Chat">
+                <span>Leave</span>
             </a>
         </div>
     </header>
