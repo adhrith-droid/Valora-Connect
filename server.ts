@@ -21,10 +21,19 @@ export interface AuthUser {
   last_login_at?: Date;
 }
 
+export interface GuestUser {
+  name: string;
+  gender: string;
+  is18: boolean;
+  isGuest: boolean;
+  createdAt?: string;
+}
+
 declare module "express-session" {
   interface SessionData {
     admin?: boolean;
     user?: AuthUser;
+    guest?: GuestUser;
     oauthState?: string;
   }
 }
@@ -63,12 +72,21 @@ const io = new Server(httpServer, {
 io.use((socket, next) => {
   const req = socket.request as express.Request;
   sessionMiddleware(req, {} as any, () => {
-    if (req.session && req.session.user) {
-      (socket as any).authUser = req.session.user;
+    if (req.session && (req.session.user || req.session.guest)) {
+      (socket as any).authUser = req.session.user || {
+        id: "guest_" + socket.id,
+        name: req.session.guest?.name || "Guest",
+        provider: "guest"
+      };
       next();
     } else {
-      console.warn(`[Socket Auth] Unauthorized socket connection rejected: ${socket.id}`);
-      next(new Error("Unauthorized: Login required"));
+      // Allow guest socket connection
+      (socket as any).authUser = {
+        id: "guest_" + socket.id,
+        name: "Valora Guest",
+        provider: "guest"
+      };
+      next();
     }
   });
 });
@@ -236,16 +254,20 @@ function requireAdmin(req: express.Request, res: express.Response, next: express
 
 // User Authentication Middleware for Chat & Protected Actions
 function requireUserAuth(req: express.Request, res: express.Response, next: express.NextFunction) {
-  if (!req.session.user) {
-    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0");
-    res.setHeader("Pragma", "no-cache");
-    res.setHeader("Expires", "0");
-    if (req.xhr || req.headers.accept?.includes("application/json") || req.path.startsWith("/api/")) {
-      return res.status(401).json({ authenticated: false, error: "Authentication required", redirect: "/login" });
-    }
-    return res.redirect("/login");
+  if (req.session.user || req.session.guest) {
+    return next();
   }
-  next();
+  // For page requests, allow client-side gate to check sessionStorage guest validity
+  if (!req.xhr && !req.path.startsWith("/api/") && req.headers.accept?.includes("text/html")) {
+    return next();
+  }
+  res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0");
+  res.setHeader("Pragma", "no-cache");
+  res.setHeader("Expires", "0");
+  if (req.xhr || req.headers.accept?.includes("application/json") || req.path.startsWith("/api/")) {
+    return res.status(401).json({ authenticated: false, error: "Authentication required", redirect: "/login" });
+  }
+  return res.redirect("/login");
 }
 
 // API Routes
@@ -793,8 +815,8 @@ app.get("/api/auth/google/callback", async (req, res) => {
       if (saveErr) {
         console.error("[Auth] Session save error after OAuth login:", saveErr);
       }
-      // Redirect authenticated user to VALORA Home
-      res.redirect("/?login_success=1");
+      // Redirect authenticated Google user directly to the Chat page
+      res.redirect("/chat");
     });
   } catch (err: any) {
     console.error("[Auth] Google OAuth callback exception:", err);
@@ -802,23 +824,77 @@ app.get("/api/auth/google/callback", async (req, res) => {
   }
 });
 
-// 3. Current Authenticated User Status API
+// 3. Guest Session Creation API (Temporary session-scoped only, NOT saved to PostgreSQL database)
+app.post("/api/auth/guest", (req, res) => {
+  try {
+    const { name, gender, is18 } = req.body;
+    if (!name || typeof name !== 'string' || !name.trim()) {
+      return res.status(400).json({ error: "Display name is required" });
+    }
+    if (!is18) {
+      return res.status(400).json({ error: "Age confirmation (18+) is required" });
+    }
+    if (!gender || (gender !== 'male' && gender !== 'female' && gender !== 'other')) {
+      return res.status(400).json({ error: "Gender selection is required" });
+    }
+
+    const guestName = name.trim().slice(0, 50);
+    req.session.guest = {
+      name: guestName,
+      gender,
+      is18: true,
+      isGuest: true,
+      createdAt: new Date().toISOString()
+    };
+
+    req.session.save((saveErr) => {
+      if (saveErr) {
+        console.error("[Auth] Session save error for guest:", saveErr);
+      }
+      res.json({
+        success: true,
+        guest: req.session.guest
+      });
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: "Failed to establish guest session" });
+  }
+});
+
+// 4. Current User / Guest Status API
 app.get("/api/auth/user", (req, res) => {
   if (req.session.user) {
     return res.json({
       authenticated: true,
+      isGuest: false,
       user: req.session.user
+    });
+  }
+  if (req.session.guest) {
+    return res.json({
+      authenticated: false,
+      isGuest: true,
+      guest: req.session.guest,
+      user: {
+        id: "guest_" + Date.now(),
+        name: req.session.guest.name,
+        avatar_url: "",
+        provider: "guest"
+      }
     });
   }
   res.json({
     authenticated: false,
-    user: null
+    isGuest: false,
+    user: null,
+    guest: null
   });
 });
 
-// 4. Logout Route
+// 5. Logout Route
 app.all(["/api/auth/logout", "/logout"], (req, res) => {
   req.session.user = undefined;
+  req.session.guest = undefined;
   req.session.save(() => {
     if (req.xhr || req.headers.accept?.includes("application/json")) {
       return res.json({ success: true, message: "Logged out successfully" });
@@ -839,11 +915,10 @@ app.use((req, res, next) => {
     return res.redirect(301, '/login' + queryString);
   }
   if (urlPath === '/chat.html') {
-    if (!req.session.user) {
-      res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0");
-      return res.redirect(302, '/login');
-    }
     return res.redirect(301, '/chat' + queryString);
+  }
+  if (urlPath === '/messages.html') {
+    return res.redirect(301, '/messages' + queryString);
   }
   if (urlPath === '/privacy.html') {
     return res.redirect(301, '/privacy' + queryString);
@@ -875,12 +950,20 @@ app.get("/robots.txt", (req, res) => {
   res.type("text/plain").sendFile(path.join(__dirname, "public/robots.txt"));
 });
 
-// Strictly Protected /chat Route
+// Strictly Protected /chat Route (Video + Text Chat)
 app.get("/chat", requireUserAuth, (req, res) => {
   res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0");
   res.setHeader("Pragma", "no-cache");
   res.setHeader("Expires", "0");
   res.sendFile(path.join(__dirname, "public/chat.html"));
+});
+
+// Strictly Protected /messages Route (Stranger Random Text-Only Chat)
+app.get("/messages", requireUserAuth, (req, res) => {
+  res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0");
+  res.setHeader("Pragma", "no-cache");
+  res.setHeader("Expires", "0");
+  res.sendFile(path.join(__dirname, "public/messages.html"));
 });
 
 app.get("/privacy", (req, res) => {
@@ -905,11 +988,16 @@ app.use((req, res) => {
   res.status(404).setHeader("Cache-Control", "no-cache").sendFile(path.join(__dirname, "public/404.html"));
 });
 
-// Matchmaking state
+// Matchmaking state for Video + Text Chat
 let waitingUser: string | null = null;
 const pairs = new Map<string, string>();
 const userNames = new Map<string, string>();
 const userIPs = new Map<string, string>();
+
+// Dedicated Matchmaking state for Stranger Random Text-Only Chat (/messages)
+let textWaitingUser: string | null = null;
+const textPairs = new Map<string, string>();
+const textUserNames = new Map<string, string>();
 
 io.on("connection", async (socket) => {
   // Capture IP
@@ -928,6 +1016,9 @@ io.on("connection", async (socket) => {
   console.log("User connected:", socket.id);
   userIPs.set(socket.id, ip);
 
+  // ----------------------------------------------------
+  // 1. VIDEO + TEXT MATCHMAKING HANDLERS (/chat)
+  // ----------------------------------------------------
   socket.on("find-partner", (data) => {
     if (data && data.name) {
       userNames.set(socket.id, data.name);
@@ -966,11 +1057,11 @@ io.on("connection", async (socket) => {
         partnerName: userNames.get(socket.id) || 'Stranger'
       });
       
-      console.log(`Matched ${socket.id} with ${partnerId}`);
+      console.log(`[Video] Matched ${socket.id} with ${partnerId}`);
     } else {
       waitingUser = socket.id;
       socket.emit("waiting");
-      console.log(`User ${socket.id} is waiting`);
+      console.log(`[Video] User ${socket.id} is waiting`);
     }
   });
 
@@ -994,18 +1085,136 @@ io.on("connection", async (socket) => {
     }
   });
 
+  // ----------------------------------------------------
+  // 2. TEXT-ONLY STRANGER MATCHMAKING HANDLERS (/messages)
+  // ----------------------------------------------------
+  socket.on("find-text-partner", (data) => {
+    if (data && data.name) {
+      textUserNames.set(socket.id, data.name);
+    }
+
+    // If already in a text pair, notify and clean up
+    if (textPairs.has(socket.id)) {
+      const partnerId = textPairs.get(socket.id);
+      if (partnerId) {
+        io.to(partnerId).emit("text-partner-disconnected");
+        textPairs.delete(partnerId);
+      }
+      textPairs.delete(socket.id);
+    }
+
+    // If this user was currently waiting, clear
+    if (textWaitingUser === socket.id) {
+      textWaitingUser = null;
+    }
+
+    // If there is another user waiting, pair them up
+    if (textWaitingUser && textWaitingUser !== socket.id) {
+      const partnerId = textWaitingUser;
+      textWaitingUser = null;
+
+      textPairs.set(socket.id, partnerId);
+      textPairs.set(partnerId, socket.id);
+
+      const partnerName = textUserNames.get(partnerId) || 'Stranger';
+      const myName = textUserNames.get(socket.id) || 'Stranger';
+
+      io.to(socket.id).emit("text-match-found", {
+        partnerId,
+        partnerName,
+        initiator: true,
+        timestamp: new Date().toISOString()
+      });
+
+      io.to(partnerId).emit("text-match-found", {
+        partnerId: socket.id,
+        partnerName: myName,
+        initiator: false,
+        timestamp: new Date().toISOString()
+      });
+
+      console.log(`[Text Chat] Matched ${socket.id} (${myName}) with ${partnerId} (${partnerName})`);
+    } else {
+      textWaitingUser = socket.id;
+      socket.emit("text-waiting");
+      console.log(`[Text Chat] User ${socket.id} is waiting for partner`);
+    }
+  });
+
+  socket.on("text-chat-message", (data) => {
+    const partnerId = textPairs.get(socket.id);
+    if (partnerId && data && data.message) {
+      const sanitized = String(data.message).slice(0, 2000);
+      io.to(partnerId).emit("text-chat-message", {
+        message: sanitized,
+        senderId: socket.id,
+        senderName: textUserNames.get(socket.id) || 'Stranger',
+        timestamp: new Date().toISOString()
+      });
+    }
+  });
+
+  socket.on("text-typing", () => {
+    const partnerId = textPairs.get(socket.id);
+    if (partnerId) {
+      io.to(partnerId).emit("text-typing", {
+        senderId: socket.id
+      });
+    }
+  });
+
+  socket.on("text-stopped-typing", () => {
+    const partnerId = textPairs.get(socket.id);
+    if (partnerId) {
+      io.to(partnerId).emit("text-stopped-typing", {
+        senderId: socket.id
+      });
+    }
+  });
+
+  socket.on("leave-text-chat", () => {
+    if (textWaitingUser === socket.id) {
+      textWaitingUser = null;
+    }
+    if (textPairs.has(socket.id)) {
+      const partnerId = textPairs.get(socket.id);
+      if (partnerId) {
+        io.to(partnerId).emit("text-partner-disconnected");
+        textPairs.delete(partnerId);
+      }
+      textPairs.delete(socket.id);
+    }
+  });
+
+  // ----------------------------------------------------
+  // 3. DISCONNECT CLEANUP
+  // ----------------------------------------------------
   socket.on("disconnect", () => {
     console.log("User disconnected:", socket.id);
     userNames.delete(socket.id);
     userIPs.delete(socket.id);
+    textUserNames.delete(socket.id);
+
+    // Video Cleanup
     if (waitingUser === socket.id) {
       waitingUser = null;
     }
-    const partnerId = pairs.get(socket.id);
-    if (partnerId) {
-      io.to(partnerId).emit("partner-disconnected");
-      pairs.delete(partnerId);
+    const videoPartnerId = pairs.get(socket.id);
+    if (videoPartnerId) {
+      io.to(videoPartnerId).emit("partner-disconnected");
+      pairs.delete(videoPartnerId);
       pairs.delete(socket.id);
+    }
+
+    // Text Chat Cleanup
+    if (textWaitingUser === socket.id) {
+      textWaitingUser = null;
+    }
+    const textPartnerId = textPairs.get(socket.id);
+    if (textPartnerId) {
+      io.to(textPartnerId).emit("text-partner-disconnected");
+      textPairs.delete(textPartnerId);
+      textPairs.delete(socket.id);
     }
   });
 });

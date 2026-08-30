@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sign In — VALORA</title>
-    <meta name="description" content="Sign in to VALORA with your Google account to start video chatting instantly.">
+    <title>Sign In & Guest Onboarding — VALORA</title>
+    <meta name="description" content="Sign in to VALORA with Google or start chatting anonymously as a guest in real-time video chat.">
     <link rel="canonical" href="https://ryntly.in/login">
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800&display=swap">
-    <link rel="stylesheet" href="/valora-tokens.css?v=3.2">
+    <link rel="stylesheet" href="/valora-tokens.css?v=3.3">
     <style>
         body {
             background-color: var(--vl-bg-base);
@@ -96,25 +96,31 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 100px 20px 48px;
+            padding: 96px 20px 48px;
             position: relative;
             z-index: 10;
         }
 
         .login-card {
             width: 100%;
-            max-width: 440px;
-            background: linear-gradient(180deg, rgba(26, 26, 34, 0.85) 0%, rgba(16, 16, 22, 0.95) 100%);
+            max-width: 460px;
+            background: linear-gradient(180deg, rgba(26, 26, 34, 0.9) 0%, rgba(16, 16, 22, 0.98) 100%);
             backdrop-filter: blur(24px);
             -webkit-backdrop-filter: blur(24px);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 24px;
-            padding: 40px 32px 36px;
+            padding: 36px 28px 32px;
             box-shadow: 0 20px 50px rgba(0, 0, 0, 0.65), 0 0 30px rgba(220, 38, 38, 0.1);
             text-align: center;
             box-sizing: border-box;
             position: relative;
             animation: cardAppear 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @media (min-width: 480px) {
+            .login-card {
+                padding: 40px 32px 36px;
+            }
         }
 
         @keyframes cardAppear {
@@ -133,16 +139,16 @@
             font-weight: 800;
             letter-spacing: -0.03em;
             color: #ffffff;
-            margin: 0 0 10px;
+            margin: 0 0 8px;
             line-height: 1.2;
         }
 
         .login-subtitle {
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             color: var(--vl-text-secondary, #cbd5e1);
-            line-height: 1.55;
-            margin: 0 auto 26px;
-            max-width: 320px;
+            line-height: 1.5;
+            margin: 0 auto 24px;
+            max-width: 340px;
         }
 
         /* Error/Status Banner */
@@ -152,7 +158,7 @@
             gap: 10px;
             padding: 12px 16px;
             border-radius: 12px;
-            margin-bottom: 24px;
+            margin-bottom: 20px;
             font-size: 0.875rem;
             line-height: 1.45;
             text-align: left;
@@ -177,13 +183,13 @@
             justify-content: center;
             gap: 12px;
             width: 100%;
-            height: 52px;
+            height: 50px;
             background: #ffffff;
             color: #1f2937;
             border: 1px solid rgba(255, 255, 255, 0.9);
             border-radius: 14px;
             font-family: inherit;
-            font-size: 1rem;
+            font-size: 0.95rem;
             font-weight: 700;
             letter-spacing: -0.01em;
             text-decoration: none;
@@ -205,16 +211,237 @@
         }
 
         .google-icon-svg {
-            width: 22px;
-            height: 22px;
+            width: 20px;
+            height: 20px;
             flex-shrink: 0;
+        }
+
+        /* Or Divider */
+        .auth-divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            margin: 24px 0 20px;
+            color: #64748b;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .auth-divider::before,
+        .auth-divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .auth-divider:not(:empty)::before {
+            margin-right: 12px;
+        }
+
+        .auth-divider:not(:empty)::after {
+            margin-left: 12px;
+        }
+
+        /* Guest Identity Form */
+        .guest-box {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 18px;
+            padding: 20px 18px;
+            text-align: left;
+            box-sizing: border-box;
+        }
+
+        .guest-box-header {
+            margin-bottom: 16px;
+        }
+
+        .guest-box-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin: 0 0 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .guest-box-desc {
+            font-size: 0.8125rem;
+            color: #94a3b8;
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        .form-group {
+            margin-bottom: 14px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 6px;
+        }
+
+        .form-input {
+            width: 100%;
+            height: 44px;
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 12px;
+            padding: 0 14px;
+            color: #ffffff;
+            font-size: 0.9375rem;
+            font-family: inherit;
+            outline: none;
+            box-sizing: border-box;
+            transition: all 0.2s ease;
+        }
+
+        .form-input:focus {
+            border-color: var(--vl-accent, #dc2626);
+            background: rgba(0, 0, 0, 0.5);
+            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.2);
+        }
+
+        .gender-options {
+            display: flex;
+            gap: 10px;
+        }
+
+        .gender-btn {
+            flex: 1;
+            height: 42px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: #cbd5e1;
+            font-weight: 600;
+            font-size: 0.875rem;
+            font-family: inherit;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+
+        .gender-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: #ffffff;
+        }
+
+        .gender-btn.selected {
+            background: rgba(220, 38, 38, 0.2);
+            border-color: var(--vl-accent, #dc2626);
+            color: #ffffff;
+            box-shadow: 0 0 12px rgba(220, 38, 38, 0.25);
+        }
+
+        .checkbox-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            user-select: none;
+            padding: 10px 12px;
+            background: rgba(0, 0, 0, 0.25);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.2s ease;
+        }
+
+        .checkbox-row:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .custom-check-box {
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        .custom-check-box::after {
+            content: '';
+            position: absolute;
+            width: 4px;
+            height: 8px;
+            border: solid white;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg) scale(0);
+            transition: transform 0.15s ease;
+            top: 1px;
+        }
+
+        input[type="checkbox"]:checked + .custom-check-box {
+            background: var(--vl-accent, #dc2626);
+            border-color: var(--vl-accent, #dc2626);
+        }
+
+        input[type="checkbox"]:checked + .custom-check-box::after {
+            transform: rotate(45deg) scale(1);
+        }
+
+        .btn-guest-submit {
+            width: 100%;
+            height: 48px;
+            background: var(--vl-accent, #dc2626);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 14px;
+            font-family: inherit;
+            font-size: 0.9375rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 14px rgba(220, 38, 38, 0.35);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 14px;
+        }
+
+        .btn-guest-submit:hover:not(:disabled) {
+            background: #b91c1c;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(220, 38, 38, 0.5);
+        }
+
+        .btn-guest-submit:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .form-error {
+            display: none;
+            color: #f87171;
+            font-size: 0.8125rem;
+            margin-top: 10px;
+            text-align: center;
+            font-weight: 600;
         }
 
         .login-footer-legal {
             font-size: 0.8125rem;
             color: #64748b;
             line-height: 1.5;
-            margin-top: 24px;
+            margin-top: 20px;
         }
 
         .login-footer-legal a {
@@ -231,10 +458,10 @@
         /* Logged in state box */
         .logged-in-box {
             display: none;
-            padding: 16px;
+            padding: 20px;
             background: rgba(255, 255, 255, 0.04);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 16px;
+            border-radius: 18px;
             margin-bottom: 20px;
         }
 
@@ -272,8 +499,8 @@
     <main class="login-main">
         <div class="login-card" id="login-card">
 
-            <h1 class="login-title">Welcome to VALORA</h1>
-            <p class="login-subtitle">Sign in to connect with people around the world in real-time video chat.</p>
+            <h1 class="login-title">Join VALORA</h1>
+            <p class="login-subtitle">Connect with real people around the world in instant peer-to-peer video chat.</p>
 
             <!-- Alert notification box -->
             <div id="login-alert" class="login-alert">
@@ -288,26 +515,78 @@
                 <img id="logged-user-avatar" class="user-avatar-img" src="" alt="Avatar" referrerpolicy="no-referrer">
                 <div style="font-weight: 700; font-size: 1.1rem; color: #ffffff;" id="logged-user-name"></div>
                 <div style="font-size: 0.875rem; color: #94a3b8; margin-bottom: 16px;" id="logged-user-email"></div>
-                <div style="display: flex; gap: 10px; justify-content: center;">
-                    <a href="/" class="vl-btn vl-btn-primary" style="flex: 1; padding: 10px 16px; font-size: 0.875rem;">Go to Home</a>
-                    <a href="/chat" class="vl-btn vl-btn-secondary" style="flex: 1; padding: 10px 16px; font-size: 0.875rem;">Start Video Chat</a>
+                <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
+                    <a href="/chat" class="vl-btn vl-btn-primary" style="flex: 1; min-width: 130px; padding: 10px 14px; font-size: 0.875rem;">Video Chat</a>
+                    <a href="/messages" class="vl-btn vl-btn-secondary" style="flex: 1; min-width: 130px; padding: 10px 14px; font-size: 0.875rem; border-color: rgba(255,255,255,0.18);">Messages</a>
                 </div>
                 <div style="margin-top: 14px;">
                     <a href="/api/auth/logout" style="color: #ef4444; font-size: 0.8125rem; text-decoration: underline;">Log out</a>
                 </div>
             </div>
 
-            <!-- Primary OAuth CTA: Continue with Google -->
-            <div id="oauth-action-container">
-                <a href="/api/auth/google" class="btn-google" id="btn-google-login">
-                    <svg class="google-icon-svg" viewBox="0 0 24 24">
-                        <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/>
-                        <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.35 24 12 24z"/>
-                        <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.98 0 12s.45 3.82 1.25 5.42l4.03-3.15z"/>
-                        <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.35 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
-                    </svg>
-                    <span>Continue with Google</span>
-                </a>
+            <!-- Auth Options Container (When not authenticated) -->
+            <div id="auth-actions-wrapper">
+                <!-- Primary Option: Google Authentication -->
+                <div id="oauth-action-container">
+                    <a href="/api/auth/google" class="btn-google" id="btn-google-login">
+                        <svg class="google-icon-svg" viewBox="0 0 24 24">
+                            <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/>
+                            <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.35 24 12 24z"/>
+                            <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.98 0 12s.45 3.82 1.25 5.42l4.03-3.15z"/>
+                            <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.35 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
+                        </svg>
+                        <span>Continue with Google</span>
+                    </a>
+                </div>
+
+                <div class="auth-divider">or chat anonymously</div>
+
+                <!-- Secondary Option: Anonymous Guest Onboarding Form -->
+                <div class="guest-box" id="guest-onboarding-box">
+                    <div class="guest-box-header">
+                        <h2 class="guest-box-title">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--vl-accent);"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                            <span>Guest Verification</span>
+                        </h2>
+                        <p class="guest-box-desc">Set your temporary session profile to enter video chat.</p>
+                    </div>
+
+                    <form id="guest-auth-form" onsubmit="return false;">
+                        <div class="form-group">
+                            <label class="form-label" for="guest-name-input">Display Name</label>
+                            <input type="text" id="guest-name-input" class="form-input" placeholder="e.g. Alex" maxlength="30" autocomplete="nickname" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Gender</label>
+                            <div class="gender-options">
+                                <button type="button" class="gender-btn" data-gender="male" id="btn-gender-male">
+                                    <span>Male</span>
+                                </button>
+                                <button type="button" class="gender-btn" data-gender="female" id="btn-gender-female">
+                                    <span>Female</span>
+                                </button>
+                            </div>
+                            <input type="hidden" id="guest-gender-input" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="checkbox-row" for="guest-18-checkbox">
+                                <input type="checkbox" id="guest-18-checkbox" style="display:none;" required>
+                                <div class="custom-check-box"></div>
+                                <span style="font-size:0.8125rem; color:#cbd5e1; flex:1;">I confirm that I am 18 years or older</span>
+                                <span class="vl-badge vl-badge-amber" style="font-size:10px; padding:2px 6px;">18+</span>
+                            </label>
+                        </div>
+
+                        <div id="guest-form-error" class="form-error"></div>
+
+                        <button type="submit" id="guest-submit-btn" class="btn-guest-submit" disabled>
+                            <span>Start Anonymous Chat</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                        </button>
+                    </form>
+                </div>
             </div>
 
             <!-- Terms & Privacy Footnote -->
@@ -329,13 +608,13 @@
             alertBox.className = 'login-alert login-alert-error';
 
             if (error === 'missing_config') {
-                alertText.innerHTML = '<strong>Configuration Required:</strong> Google OAuth credentials (<code>GOOGLE_CLIENT_ID</code> & <code>GOOGLE_CLIENT_SECRET</code>) must be configured in environment variables.';
+                alertText.innerHTML = '<strong>Configuration Required:</strong> Google OAuth credentials (<code>GOOGLE_CLIENT_ID</code> & <code>GOOGLE_CLIENT_SECRET</code>) must be configured.';
             } else if (error === 'access_denied') {
-                alertText.textContent = 'Google sign-in was cancelled. Please try again when you are ready.';
+                alertText.textContent = 'Google sign-in was cancelled. Please try again or continue as a guest.';
             } else if (error === 'token_exchange_failed') {
                 alertText.textContent = 'Failed to verify authentication with Google. Please check your OAuth Client Secret and authorized redirect URI.';
             } else {
-                alertText.textContent = 'Sign-in error: ' + error + '. Please try again.';
+                alertText.textContent = 'Sign-in notice: ' + error;
             }
         }
 
@@ -345,13 +624,13 @@
             .then(data => {
                 if (data.authenticated && data.user) {
                     const loggedBox = document.getElementById('logged-in-container');
-                    const oauthBtn = document.getElementById('oauth-action-container');
+                    const authActions = document.getElementById('auth-actions-wrapper');
                     const userAvatar = document.getElementById('logged-user-avatar');
                     const userName = document.getElementById('logged-user-name');
                     const userEmail = document.getElementById('logged-user-email');
 
                     loggedBox.style.display = 'block';
-                    oauthBtn.style.display = 'none';
+                    if (authActions) authActions.style.display = 'none';
 
                     userName.textContent = data.user.name || 'VALORA User';
                     userEmail.textContent = data.user.email || '';
@@ -359,6 +638,120 @@
                 }
             })
             .catch(err => console.warn('Auth check error:', err));
+
+        // Guest Onboarding Form Validation & Submission
+        const guestNameInput = document.getElementById('guest-name-input');
+        const guestGenderInput = document.getElementById('guest-gender-input');
+        const guest18Checkbox = document.getElementById('guest-18-checkbox');
+        const guestSubmitBtn = document.getElementById('guest-submit-btn');
+        const guestFormError = document.getElementById('guest-form-error');
+        const guestForm = document.getElementById('guest-auth-form');
+        const genderButtons = document.querySelectorAll('.gender-btn');
+
+        // Pre-fill existing guest name if available in sessionStorage
+        try {
+            const existingGuest = sessionStorage.getItem('valora_guest_user') || sessionStorage.getItem('valora_user');
+            if (existingGuest) {
+                const parsed = JSON.parse(existingGuest);
+                if (parsed && parsed.name) guestNameInput.value = parsed.name;
+                if (parsed && parsed.gender) {
+                    guestGenderInput.value = parsed.gender;
+                    genderButtons.forEach(btn => {
+                        if (btn.dataset.gender === parsed.gender) btn.classList.add('selected');
+                    });
+                }
+                if (parsed && parsed.is18) guest18Checkbox.checked = true;
+            }
+        } catch(e) {}
+
+        function validateGuestForm() {
+            const name = guestNameInput.value.trim();
+            const gender = guestGenderInput.value;
+            const is18 = guest18Checkbox.checked;
+
+            const isValid = (name.length > 0 && !!gender && is18);
+            guestSubmitBtn.disabled = !isValid;
+            if (isValid && guestFormError) {
+                guestFormError.style.display = 'none';
+            }
+            return isValid;
+        }
+
+        guestNameInput.addEventListener('input', validateGuestForm);
+        guest18Checkbox.addEventListener('change', validateGuestForm);
+
+        genderButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                genderButtons.forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                guestGenderInput.value = btn.dataset.gender;
+                validateGuestForm();
+            });
+        });
+
+        validateGuestForm();
+
+        guestForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = guestNameInput.value.trim();
+            const gender = guestGenderInput.value;
+            const is18 = guest18Checkbox.checked;
+
+            if (!name) {
+                showError("Please enter your display name.");
+                guestNameInput.focus();
+                return;
+            }
+            if (!gender) {
+                showError("Please select your gender.");
+                return;
+            }
+            if (!is18) {
+                showError("You must confirm you are 18 years or older to proceed.");
+                return;
+            }
+
+            guestSubmitBtn.disabled = true;
+            guestSubmitBtn.innerHTML = `<span>Starting Chat...</span>`;
+
+            const guestData = {
+                name: name,
+                gender: gender,
+                is18: true,
+                isGuest: true
+            };
+
+            // Save to sessionStorage (tab-scoped anonymous session)
+            try {
+                sessionStorage.setItem('valora_guest_user', JSON.stringify(guestData));
+                sessionStorage.setItem('valora_user', JSON.stringify(guestData));
+            } catch(storageErr) {
+                console.warn('Storage error:', storageErr);
+            }
+
+            // Sync with lightweight server session
+            try {
+                await fetch('/api/auth/guest', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(guestData)
+                });
+            } catch(apiErr) {
+                console.warn('Guest session sync notice:', apiErr);
+            }
+
+            // Direct redirect to destination (or /chat by default)
+            const returnTo = new URLSearchParams(window.location.search).get('returnTo');
+            const targetUrl = (returnTo && (returnTo.startsWith('/') || returnTo.startsWith(window.location.origin))) ? returnTo : '/chat';
+            window.location.href = targetUrl;
+        });
+
+        function showError(msg) {
+            if (guestFormError) {
+                guestFormError.textContent = msg;
+                guestFormError.style.display = 'block';
+            }
+        }
     </script>
 </body>
 </html>

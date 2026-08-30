@@ -104,6 +104,22 @@ function updateStatus(state, message) {
 // Check if user is already in session and initialize
 async function initSession() {
     let authUser = window.__VALORA_AUTH_USER__;
+    let guestUser = window.__VALORA_GUEST_USER__;
+
+    // Check sessionStorage for guest data
+    if (!guestUser) {
+        try {
+            const stored = sessionStorage.getItem('valora_guest_user') || sessionStorage.getItem('valora_user');
+            if (stored) {
+                const parsed = JSON.parse(stored);
+                if (parsed && parsed.name && parsed.is18) {
+                    guestUser = parsed;
+                }
+            }
+        } catch (e) {}
+    }
+
+    // Check server auth state if no Google auth cached
     if (!authUser) {
         try {
             const res = await fetch('/api/auth/user', { cache: 'no-store' });
@@ -111,43 +127,36 @@ async function initSession() {
             if (data.authenticated && data.user) {
                 authUser = data.user;
                 window.__VALORA_AUTH_USER__ = data.user;
-            } else {
-                window.location.replace('/login');
-                return;
+            } else if (data.isGuest && data.guest && !guestUser) {
+                guestUser = data.guest;
             }
         } catch (e) {
-            window.location.replace('/login');
-            return;
+            console.warn('[Valora Chat] Auth check notice:', e);
         }
     }
 
-    const defaultName = authUser.name || 'Valora User';
-    if (modalName && !modalName.value) {
-        modalName.value = defaultName;
+    // Flow 1: Google Authenticated User -> Direct Chat without identity/verification form
+    if (authUser) {
+        window.userName = authUser.name || 'Valora User';
+        window.isGuest = false;
+        if (localLabel) localLabel.innerText = window.userName;
+        if (ageGateModal) ageGateModal.classList.add('hidden');
+        startMedia();
+        return;
     }
 
-    const storedUser = sessionStorage.getItem('valora_user');
-    if (storedUser) {
-        try {
-            const userData = JSON.parse(storedUser);
-            window.userName = userData.name || defaultName;
-            if (localLabel) localLabel.innerText = window.userName;
-            startMedia();
-            return;
-        } catch (e) {
-            sessionStorage.removeItem('valora_user');
-        }
+    // Flow 2: Valid Guest User -> Direct Chat using guest session
+    if (guestUser && guestUser.name) {
+        window.userName = guestUser.name;
+        window.isGuest = true;
+        if (localLabel) localLabel.innerText = window.userName;
+        if (ageGateModal) ageGateModal.classList.add('hidden');
+        startMedia();
+        return;
     }
-    
-    // Pre-populate with verified Google authentication name
-    window.userName = defaultName;
-    if (localLabel) localLabel.innerText = defaultName;
 
-    // Show verification confirmation modal
-    if (ageGateModal) {
-        ageGateModal.classList.remove('hidden');
-        validateModal();
-    }
+    // Unauthenticated and no guest session -> redirect to login/onboarding
+    window.location.replace('/login');
 }
 
 if (document.readyState === 'loading') {
@@ -178,7 +187,7 @@ genderBtns.forEach(btn => {
 });
 
 if (ageGateForm) {
-    ageGateForm.addEventListener('submit', (e) => {
+    ageGateForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const name = modalName.value.trim();
         const gender = modalGender.value;
@@ -186,17 +195,27 @@ if (ageGateForm) {
         
         if (!name || !is18 || !gender) {
             if (modalError) {
-                modalError.innerText = "Please complete all fields.";
+                modalError.innerText = "Please complete all fields (Name, Gender, and 18+ confirmation).";
                 modalError.classList.remove('hidden');
             }
             return;
         }
         
-        sessionStorage.setItem('valora_user', JSON.stringify({ name, gender }));
+        const guestData = { name, gender, is18: true, isGuest: true };
+        try {
+            sessionStorage.setItem('valora_guest_user', JSON.stringify(guestData));
+            sessionStorage.setItem('valora_user', JSON.stringify(guestData));
+            await fetch('/api/auth/guest', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(guestData)
+            });
+        } catch(e) {}
+
         window.userName = name;
         if (localLabel) localLabel.innerText = name;
         
-        ageGateModal.classList.add('hidden');
+        if (ageGateModal) ageGateModal.classList.add('hidden');
         startMedia();
     });
 }
