@@ -62,12 +62,48 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800&display=swap">
-    <link rel="stylesheet" href="/valora-tokens.css?v=3.1">
+    <link rel="stylesheet" href="/valora-tokens.css?v=3.3">
 
     <style>
         :root {
             --bg-color: var(--vl-bg-base, #07070a);
             --header-height: 72px;
+        }
+
+        /* Header Layout Consistency */
+        .vl-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            width: 100%;
+            height: var(--header-height, 72px);
+            background: var(--vl-bg-glass, rgba(10, 10, 14, 0.85));
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border-bottom: 1px solid var(--vl-border-subtle, rgba(255, 255, 255, 0.08));
+            z-index: 990;
+            display: flex;
+            align-items: center;
+            box-sizing: border-box;
+        }
+
+        .vl-header-container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            box-sizing: border-box;
+        }
+
+        @media (min-width: 768px) {
+            .vl-header-container {
+                padding: 0 24px;
+            }
         }
 
         body {

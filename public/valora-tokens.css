@@ -343,14 +343,16 @@ body {
     top: 0;
     left: 0;
     right: 0;
-    height: var(--vl-header-height);
-    background: var(--vl-bg-glass);
+    width: 100%;
+    height: var(--vl-header-height, 72px);
+    background: var(--vl-bg-glass, rgba(10, 10, 14, 0.85));
     backdrop-filter: blur(18px);
     -webkit-backdrop-filter: blur(18px);
-    border-bottom: 1px solid var(--vl-border-subtle);
+    border-bottom: 1px solid var(--vl-border-subtle, rgba(255, 255, 255, 0.08));
     z-index: 990;
     display: flex;
     align-items: center;
+    box-sizing: border-box;
     transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
