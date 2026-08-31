@@ -1028,6 +1028,12 @@ app.use((req, res, next) => {
   if (urlPath === '/terms.html') {
     return res.redirect(301, '/terms' + queryString);
   }
+  if (urlPath === '/safety.html' || urlPath === '/safety-center.html') {
+    return res.redirect(301, '/safety' + queryString);
+  }
+  if (urlPath === '/community-rules.html' || urlPath === '/rules.html' || urlPath === '/community-guidelines.html') {
+    return res.redirect(301, '/community-rules' + queryString);
+  }
   if (urlPath === '/contact.html' || urlPath === '/support' || urlPath === '/support.html') {
     return res.redirect(301, '/contact' + queryString);
   }
@@ -1052,6 +1058,16 @@ app.get("/contact", (req, res) => {
 
 app.get(["/support", "/help"], (req, res) => {
   res.redirect(301, "/contact");
+});
+
+app.get(["/safety", "/safety-center"], (req, res) => {
+  res.setHeader("Cache-Control", "public, max-age=0, must-revalidate");
+  res.sendFile(path.join(__dirname, "public/safety.html"));
+});
+
+app.get(["/community-rules", "/rules", "/guidelines"], (req, res) => {
+  res.setHeader("Cache-Control", "public, max-age=0, must-revalidate");
+  res.sendFile(path.join(__dirname, "public/community-rules.html"));
 });
 
 app.get("/sitemap.xml", (req, res) => {

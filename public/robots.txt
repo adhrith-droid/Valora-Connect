@@ -1,13 +1,20 @@
 User-agent: *
 Allow: /
+Allow: /safety
+Allow: /community-rules
+Allow: /contact
+Allow: /privacy
+Allow: /terms
+Allow: /login
 Disallow: /admin/
 Disallow: /admin
 Disallow: /api/
 Disallow: /socket.io/
 Disallow: /chat
 Disallow: /chat.html
+Disallow: /messages
+Disallow: /messages.html
 Disallow: /404
 Disallow: /404.html
 
 Sitemap: https://ryntly.in/sitemap.xml
-

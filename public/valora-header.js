@@ -375,13 +375,21 @@ function initAuthState() {
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
                             <span>Server Status</span>
                         </a>
+                        <a href="/safety" class="vl-mobile-nav-link">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                            <span>Safety Center</span>
+                        </a>
+                        <a href="/community-rules" class="vl-mobile-nav-link">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><line x1="10" x2="8" y1="9" y2="9"/></svg>
+                            <span>Community Rules</span>
+                        </a>
                         <a href="/privacy" class="vl-mobile-nav-link">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                             <span>Privacy Policy</span>
                         </a>
                         <a href="/terms" class="vl-mobile-nav-link">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><line x1="10" x2="8" y1="9" y2="9"/></svg>
-                            <span>Terms & Community Rules</span>
+                            <span>Terms of Service</span>
                         </a>
                     </nav>
 
@@ -392,9 +400,13 @@ function initAuthState() {
                             </div>
                             <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${userName}</span>
                         </button>
-                        <a href="/chat" class="vl-drawer-cta-btn vl-drawer-connect-btn" id="drawer-connect-btn">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-                            <span>Start Connecting</span>
+                        <a href="/api/auth/logout" class="vl-drawer-cta-btn vl-drawer-logout-btn" id="drawer-logout-btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                                <polyline points="16 17 21 12 16 7"/>
+                                <line x1="21" x2="9" y1="12" y2="12"/>
+                            </svg>
+                            <span>Log Out</span>
                         </a>
                     </div>
 
@@ -430,15 +442,21 @@ function initAuthState() {
                 }
 
                 // Bind drawer listeners
-                mobileDrawer.querySelector('#mobile-menu-profile').addEventListener('click', () => {
-                    closeMobileDrawer();
-                    openProfileModal(data.user);
-                });
+                const profileBtn = mobileDrawer.querySelector('#mobile-menu-profile');
+                if (profileBtn) {
+                    profileBtn.addEventListener('click', () => {
+                        closeMobileDrawer();
+                        openProfileModal(data.user);
+                    });
+                }
 
-                mobileDrawer.querySelector('#mobile-menu-settings').addEventListener('click', () => {
-                    closeMobileDrawer();
-                    openSettingsModal();
-                });
+                const settingsBtn = mobileDrawer.querySelector('#mobile-menu-settings');
+                if (settingsBtn) {
+                    settingsBtn.addEventListener('click', () => {
+                        closeMobileDrawer();
+                        openSettingsModal();
+                    });
+                }
             }
 
         } else {
@@ -505,8 +523,11 @@ function openProfileModal(user) {
             </div>
 
             <div style="display:flex;gap:10px;">
-                <button type="button" class="vl-btn vl-btn-secondary" id="modal-profile-close-btn" style="flex:1;">Close</button>
-                <a href="/chat" class="vl-btn vl-btn-primary" style="flex:1;">Enter Chat</a>
+                <a href="/api/auth/logout" class="vl-btn vl-btn-secondary" style="flex:1;justify-content:center;color:#ef4444;border-color:rgba(239,68,68,0.35);text-decoration:none;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px;"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+                    <span>Log Out</span>
+                </a>
+                <a href="/chat" class="vl-btn vl-btn-primary" style="flex:1;justify-content:center;text-decoration:none;">Enter Chat</a>
             </div>
         </div>
     `;
@@ -515,7 +536,8 @@ function openProfileModal(user) {
     requestAnimationFrame(() => modal.classList.add('open'));
 
     modal.querySelector('.vl-modal-close-btn').addEventListener('click', closeAllModals);
-    modal.querySelector('#modal-profile-close-btn').addEventListener('click', closeAllModals);
+    const closeBtnInner = modal.querySelector('#modal-profile-close-btn');
+    if (closeBtnInner) closeBtnInner.addEventListener('click', closeAllModals);
     modal.addEventListener('click', (e) => {
         if (e.target === modal) closeAllModals();
     });

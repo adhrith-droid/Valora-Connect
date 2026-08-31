@@ -999,6 +999,34 @@ body {
     transform: scale(0.98);
 }
 
+.vl-drawer-logout-btn {
+    background: rgba(239, 68, 68, 0.12);
+    border: 1px solid rgba(239, 68, 68, 0.35);
+    color: #ef4444;
+    box-shadow: 0 4px 16px rgba(239, 68, 68, 0.15);
+}
+
+.vl-drawer-logout-btn svg {
+    width: 18px;
+    height: 18px;
+    color: #ef4444;
+    fill: none;
+    stroke: currentColor;
+    flex-shrink: 0;
+}
+
+.vl-drawer-logout-btn:hover {
+    background: #ef4444;
+    border-color: #ef4444;
+    color: #ffffff;
+    box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+}
+
+.vl-drawer-logout-btn:hover svg {
+    color: #ffffff;
+    stroke: #ffffff;
+}
+
 /* Drawer Footer Badges */
 .vl-drawer-footer-badges {
     display: flex;
