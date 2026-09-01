@@ -7,7 +7,6 @@
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
-
       gtag('config', 'G-MW819QM3ZX');
     </script>
     <meta charset="UTF-8">
@@ -19,88 +18,186 @@
             window.location.replace('/admin/login.html');
         }
     </script>
-    <link rel="stylesheet" href="admin.css">
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="admin.css">
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
-    <aside id="sidebar" class="sidebar glass">
-        <div id="sidebar-toggle" class="sidebar-toggle">
-            <i data-lucide="chevron-left" class="w-4 h-4"></i>
-        </div>
-        <div class="p-8 mb-4 flex items-center">
-            <h1 class="text-2xl font-black tracking-tighter text-white sidebar-header-text">VALORA <span class="text-red-500">ADMIN</span></h1>
-            <h1 class="text-2xl font-black tracking-tighter text-red-500 hidden sidebar-collapsed-text">V</h1>
-        </div>
-        
-        <nav class="space-y-2">
-            <a href="/admin" class="nav-link">
-                <i data-lucide="layout-dashboard" class="w-5 h-5 mr-3"></i>
-                <span class="nav-text">Dashboard</span>
-            </a>
-            <a href="/admin/reports-page" class="nav-link active">
-                <i data-lucide="flag" class="w-5 h-5 mr-3"></i>
-                <span class="nav-text">Reports</span>
-            </a>
-            <a href="/admin/banned-page" class="nav-link">
-                <i data-lucide="user-x" class="w-5 h-5 mr-3"></i>
-                <span class="nav-text">Banned Users</span>
-            </a>
-            <a href="/admin/analytics-page" class="nav-link">
-                <i data-lucide="activity" class="w-5 h-5 mr-3"></i>
-                <span class="nav-text">Analytics</span>
-            </a>
-            <div class="pt-8 mt-8 border-t border-white/5">
-                <a href="/admin/logout" onclick="adminLogout(event)" class="nav-link text-red-400 hover:text-red-300">
-                    <i data-lucide="log-out" class="w-5 h-5 mr-3"></i>
-                    <span class="nav-text">Logout</span>
+    <div class="admin-app">
+        <!-- Mobile Sidebar Backdrop -->
+        <div id="sidebar-backdrop" class="sidebar-backdrop"></div>
+
+        <!-- Sidebar Navigation -->
+        <aside id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <a href="/admin" class="brand-badge">
+                    <div class="brand-icon">V</div>
+                    <div class="brand-text">
+                        <span class="brand-title">VALORA <span class="brand-tag">ADMIN</span></span>
+                    </div>
+                </a>
+                <button id="sidebar-close" class="sidebar-close-btn" aria-label="Close Sidebar">
+                    <i data-lucide="x" style="width: 16px; height: 16px;"></i>
+                </button>
+            </div>
+
+            <nav class="sidebar-nav">
+                <span class="nav-section-title">Navigation</span>
+                <a href="/admin" class="nav-item">
+                    <i data-lucide="layout-dashboard" style="width: 18px; height: 18px;"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="/admin/reports-page" class="nav-item active">
+                    <i data-lucide="flag" style="width: 18px; height: 18px;"></i>
+                    <span>Reports</span>
+                    <span id="reports-total-count" class="nav-badge">0</span>
+                </a>
+                <a href="/admin/banned-page" class="nav-item">
+                    <i data-lucide="user-x" style="width: 18px; height: 18px;"></i>
+                    <span>Banned Users</span>
+                </a>
+                <a href="/admin/analytics-page" class="nav-item">
+                    <i data-lucide="activity" style="width: 18px; height: 18px;"></i>
+                    <span>Analytics</span>
+                </a>
+
+                <span class="nav-section-title" style="margin-top: 1rem;">Platform</span>
+                <a href="/" target="_blank" class="nav-item">
+                    <i data-lucide="external-link" style="width: 18px; height: 18px;"></i>
+                    <span>Open Live Chat</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="admin-profile-pill">
+                    <div class="admin-avatar">
+                        <i data-lucide="shield" style="width: 14px; height: 14px;"></i>
+                    </div>
+                    <div class="admin-info">
+                        <span id="admin-profile-name" class="admin-name">Admin</span>
+                        <span class="admin-role">Super Administrator</span>
+                    </div>
+                </div>
+                <a href="/admin/logout" onclick="adminLogout(event)" class="nav-item nav-logout">
+                    <i data-lucide="log-out" style="width: 18px; height: 18px;"></i>
+                    <span>Sign Out</span>
                 </a>
             </div>
-        </nav>
-    </aside>
+        </aside>
 
-    <main id="main-content" class="main-content">
-        <header class="flex justify-between items-center mb-10">
-            <div class="flex items-center gap-4">
-                <button id="mobile-toggle" class="lg:hidden p-2 bg-white/5 rounded-lg border border-white/5">
-                    <i data-lucide="menu" class="w-6 h-6 text-white"></i>
-                </button>
-                <div>
-                    <h2 class="text-3xl font-black text-white tracking-tight">Reports Management</h2>
-                    <p class="text-gray-400 text-sm mt-1">Review and action user reports</p>
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="admin-header">
+                <div class="header-left">
+                    <button id="mobile-toggle" class="mobile-menu-btn" aria-label="Open Navigation">
+                        <i data-lucide="menu" style="width: 20px; height: 20px;"></i>
+                    </button>
+                    <div class="page-titles">
+                        <h1 class="page-title">Reports Management</h1>
+                        <p class="page-subtitle">Review, investigate, and take disciplinary actions on platform reports</p>
+                    </div>
+                </div>
+
+                <div class="header-right">
+                    <button id="reports-refresh-btn" onclick="fetchAllReports()" class="btn btn-secondary" title="Refresh Reports">
+                        <i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i>
+                        <span>Refresh List</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Filters & Search Section -->
+            <div class="section-card" style="padding: 1rem 1.25rem;">
+                <div class="filter-bar">
+                    <div class="search-input-wrap">
+                        <i data-lucide="search" style="width: 15px; height: 15px;"></i>
+                        <input id="reports-search-input" type="text" class="admin-search-input" placeholder="Search by email, reason, IP, or ID...">
+                    </div>
+
+                    <div class="filter-tabs">
+                        <button class="filter-tab reports-filter-tab active" data-filter="all">All Reports</button>
+                        <button class="filter-tab reports-filter-tab" data-filter="pending">Pending</button>
+                        <button class="filter-tab reports-filter-tab" data-filter="reviewed">Reviewed</button>
+                        <button class="filter-tab reports-filter-tab" data-filter="resolved">Resolved</button>
+                    </div>
                 </div>
             </div>
-            <div class="flex items-center gap-4">
-                <button onclick="fetchAllReports()" class="flex items-center gap-2 bg-white/5 px-4 py-2 rounded-full border border-white/5 hover:bg-white/10 transition-colors">
-                    <i data-lucide="refresh-cw" class="w-4 h-4 text-gray-400"></i>
-                    <span class="text-xs font-bold uppercase tracking-widest text-gray-400">Refresh</span>
+
+            <!-- Reports Table Card -->
+            <div class="section-card">
+                <!-- Empty State -->
+                <div id="reports-empty-state" class="empty-state" style="display: none;">
+                    <div class="empty-icon-wrap">
+                        <i data-lucide="inbox" style="width: 24px; height: 24px; color: #71717A;"></i>
+                    </div>
+                    <div class="empty-title">No Reports Found</div>
+                    <div class="empty-subtitle">No reports match your current search query or filter selection.</div>
+                </div>
+
+                <!-- Table Wrapper -->
+                <div id="reports-table-wrap" class="table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Reporter</th>
+                                <th>Reason</th>
+                                <th>Message / Details</th>
+                                <th>Reported IP & User</th>
+                                <th>Reported At</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="all-reports-body">
+                            <!-- Populated dynamically by admin.js -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Report Message Detail Modal -->
+    <div id="report-message-modal" class="admin-modal-backdrop">
+        <div class="admin-modal-box">
+            <div class="modal-header">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <i data-lucide="file-text" style="width: 18px; height: 18px; color: #FF2444;"></i>
+                    <h3 class="modal-title">Report Details</h3>
+                </div>
+                <button onclick="closeAllModals()" class="modal-close-btn" aria-label="Close Dialog">
+                    <i data-lucide="x" style="width: 18px; height: 18px;"></i>
                 </button>
             </div>
-        </header>
 
-        <div class="glass p-8 rounded-[1.5rem] animate-in">
-            <div class="table-container">
-                <table id="reports-table">
-                    <thead>
-                        <tr>
-                            <th>Reporter</th>
-                            <th>Reason</th>
-                            <th>Message</th>
-                            <th>Reported User</th>
-                            <th>Date</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="all-reports-body">
-                        <!-- Content loaded via JS -->
-                    </tbody>
-                </table>
+            <div style="display: flex; flex-direction: column; gap: 12px; font-size: 0.875rem;">
+                <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 8px;">
+                    <span style="color: #71717A;">Reporter:</span>
+                    <span id="modal-report-reporter" style="font-weight: 600; color: #fff;">-</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 8px;">
+                    <span style="color: #71717A;">Reason:</span>
+                    <span id="modal-report-reason" style="font-weight: 600; color: #F59E0B;">-</span>
+                </div>
+                <div>
+                    <span style="color: #71717A; display: block; margin-bottom: 6px;">Message Body:</span>
+                    <div id="modal-report-message" style="background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.08); padding: 12px; border-radius: 8px; color: #E4E4E7; line-height: 1.5; white-space: pre-wrap; font-size: 0.8125rem; max-height: 200px; overflow-y: auto;">
+                        -
+                    </div>
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px;">
+                <button onclick="closeAllModals()" class="btn btn-secondary">Close</button>
             </div>
         </div>
-    </main>
+    </div>
 
+    <!-- Scripts -->
     <script src="admin.js"></script>
 </body>
 </html>

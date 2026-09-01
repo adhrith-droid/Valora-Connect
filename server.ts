@@ -634,23 +634,62 @@ app.delete("/admin/api/banned-ips/:id", requireAdmin, async (req, res) => {
 
 app.get("/admin/api/analytics", requireAdmin, async (req, res) => {
   try {
+    let reportsByReason: { _id: string; count: number }[] = [];
+    let reportsByDay: { _id: string; count: number }[] = [];
+
+    // Helper to generate last 7 days dates map
+    const last7DaysMap: Record<string, number> = {};
+    const dayKeys: string[] = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const key = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+      last7DaysMap[key] = 0;
+      dayKeys.push(key);
+    }
+
     if (isNeonConnected && pool) {
       try {
         const reasonRes = await pool.query(
           "SELECT reason as _id, COUNT(*)::int as count FROM reports GROUP BY reason"
         );
-        return res.json({ reportsByReason: reasonRes.rows, reportsByDay: [] });
+        reportsByReason = reasonRes.rows;
+
+        const dayRes = await pool.query(
+          `SELECT TO_CHAR(reported_at, 'Mon DD') as _id, COUNT(*)::int as count 
+           FROM reports 
+           WHERE reported_at >= NOW() - INTERVAL '7 days' 
+           GROUP BY TO_CHAR(reported_at, 'Mon DD'), DATE_TRUNC('day', reported_at) 
+           ORDER BY DATE_TRUNC('day', reported_at) ASC`
+        );
+        dayRes.rows.forEach(r => {
+          if (last7DaysMap[r._id] !== undefined) {
+            last7DaysMap[r._id] = parseInt(r.count, 10) || 0;
+          }
+        });
+        reportsByDay = dayKeys.map(k => ({ _id: k, count: last7DaysMap[k] || 0 }));
+
+        return res.json({ reportsByReason, reportsByDay });
       } catch {
-        // fallback
+        // fallback to in-memory
       }
     }
+
+    // In-memory fallback
     const reasonCounts: Record<string, number> = {};
     inMemoryReports.forEach(r => {
       reasonCounts[r.reason] = (reasonCounts[r.reason] || 0) + 1;
+      const d = new Date(r.reportedAt);
+      const key = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+      if (last7DaysMap[key] !== undefined) {
+        last7DaysMap[key] = (last7DaysMap[key] || 0) + 1;
+      }
     });
-    const reportsByReason = Object.entries(reasonCounts).map(([_id, count]) => ({ _id, count }));
 
-    res.json({ reportsByReason, reportsByDay: [] });
+    reportsByReason = Object.entries(reasonCounts).map(([_id, count]) => ({ _id, count }));
+    reportsByDay = dayKeys.map(k => ({ _id: k, count: last7DaysMap[k] || 0 }));
+
+    res.json({ reportsByReason, reportsByDay });
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch analytics" });
   }
