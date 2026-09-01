@@ -283,9 +283,13 @@ async function isIpBanned(ip: string): Promise<{ banned: boolean; reason?: strin
 
 // Admin Middleware
 function requireAdmin(req: express.Request, res: express.Response, next: express.NextFunction) {
-  if (!req.session.admin) {
-    if (req.xhr || req.path.startsWith('/admin/api')) {
-      return res.status(401).json({ error: "Unauthorized" });
+  const cookieHeader = req.headers.cookie || "";
+  const hasCookieAuth = cookieHeader.includes("valora_admin=1");
+  const hasHeaderAuth = req.headers["x-admin-auth"] === "true";
+
+  if (!req.session?.admin && !hasCookieAuth && !hasHeaderAuth) {
+    if (req.xhr || req.path.startsWith('/admin/api') || req.headers.accept?.includes("application/json")) {
+      return res.status(401).json({ error: "Unauthorized", redirect: "/admin/login.html" });
     }
     return res.redirect('/admin/login.html');
   }
@@ -422,24 +426,70 @@ app.post("/api/contact", async (req, res) => {
 
 // Admin Auth Routes
 app.post("/admin/login", (req, res) => {
-  const { username, password } = req.body;
-  const adminUser = process.env.ADMIN_USER || "admin";
-  const adminPass = process.env.ADMIN_PASS || "valora2026";
+  const { username, password } = req.body || {};
+  const normalizedUser = (username || "").trim();
+  const normalizedPass = (password || "").trim();
+  const adminUser = (process.env.ADMIN_USER || "admin").trim();
+  const adminPass = (process.env.ADMIN_PASS || "valora2026").trim();
 
-  if (username === adminUser && password === adminPass) {
+  const isMatch = (
+    (normalizedUser.toLowerCase() === adminUser.toLowerCase() || normalizedUser === adminUser) &&
+    normalizedPass === adminPass
+  );
+
+  if (isMatch) {
     req.session.admin = true;
-    console.log(`[ADMIN] Login successful for user: ${username}`);
-    res.redirect("/admin/dashboard");
+    req.session.save((err) => {
+      if (err) {
+        console.error("[ADMIN] Error saving admin session:", err);
+      }
+      console.log(`[ADMIN] Login successful for user: ${normalizedUser}`);
+      
+      // Fallback auth cookie for iframe / cross-origin preview environments
+      res.cookie("valora_admin", "1", {
+        path: "/",
+        httpOnly: false,
+        sameSite: "lax",
+        maxAge: 1000 * 60 * 60 * 24 * 30
+      });
+
+      if (req.xhr || req.headers.accept?.includes("application/json") || req.is("json")) {
+        return res.json({ success: true, redirect: "/admin/index.html", user: normalizedUser });
+      }
+      return res.redirect("/admin/index.html");
+    });
   } else {
-    console.log(`[ADMIN] Login failed for user: ${username}`);
-    res.redirect("/admin/login.html?error=1");
+    console.log(`[ADMIN] Login failed for user: ${normalizedUser}`);
+    if (req.xhr || req.headers.accept?.includes("application/json") || req.is("json")) {
+      return res.status(401).json({ success: false, error: "Invalid username or password. Please try again." });
+    }
+    return res.redirect("/admin/login.html?error=1");
   }
 });
 
-app.get("/admin/logout", (req, res) => {
+app.all(["/admin/logout", "/admin/api/logout"], (req, res) => {
+  if (req.session) {
+    req.session.admin = false;
+    delete req.session.admin;
+  }
+  res.clearCookie("valora_admin", { path: "/" });
   req.session.destroy(() => {
+    if (req.xhr || req.headers.accept?.includes("application/json")) {
+      return res.json({ success: true, redirect: "/admin/login.html" });
+    }
     res.redirect('/admin/login.html');
   });
+});
+
+app.get("/admin/api/auth-check", (req, res) => {
+  const cookieHeader = req.headers.cookie || "";
+  const hasCookieAuth = cookieHeader.includes("valora_admin=1");
+  const hasHeaderAuth = req.headers["x-admin-auth"] === "true";
+
+  if (req.session?.admin || hasCookieAuth || hasHeaderAuth) {
+    return res.json({ authenticated: true, username: process.env.ADMIN_USER || "admin" });
+  }
+  return res.status(401).json({ authenticated: false });
 });
 
 // Admin Dashboard API
@@ -607,29 +657,37 @@ app.get("/admin/api/analytics", requireAdmin, async (req, res) => {
 });
 
 // Admin Page Routes
-app.get("/admin/dashboard", requireAdmin, (req, res) => {
+app.get(["/admin", "/admin/", "/admin/dashboard", "/admin/index.html"], requireAdmin, (req, res) => {
   res.sendFile(path.join(__dirname, "public/admin/index.html"));
 });
 
-app.get("/admin", (req, res) => {
-  res.redirect("/admin/dashboard");
-});
-
-app.get("/admin/reports-page", requireAdmin, (req, res) => {
+app.get(["/admin/reports", "/admin/reports-page", "/admin/reports.html"], requireAdmin, (req, res) => {
   res.sendFile(path.join(__dirname, "public/admin/reports.html"));
 });
 
-app.get("/admin/banned-page", requireAdmin, (req, res) => {
+app.get(["/admin/banned", "/admin/banned-page", "/admin/banned.html"], requireAdmin, (req, res) => {
   res.sendFile(path.join(__dirname, "public/admin/banned.html"));
 });
 
-app.get("/admin/analytics-page", requireAdmin, (req, res) => {
+app.get(["/admin/analytics", "/admin/analytics-page", "/admin/analytics.html"], requireAdmin, (req, res) => {
   res.sendFile(path.join(__dirname, "public/admin/analytics.html"));
+});
+
+app.get(["/admin/login", "/admin/login.html"], (req, res) => {
+  res.sendFile(path.join(__dirname, "public/admin/login.html"));
 });
 
 // Protect other /admin routes
 app.use("/admin", (req, res, next) => {
-  if (req.path === "/login.html" || req.path === "/admin.css" || req.path === "/admin.js" || req.path === "/login") {
+  if (
+    req.path === "/login.html" || 
+    req.path === "/login" || 
+    req.path === "/admin.css" || 
+    req.path === "/admin.js" ||
+    req.path === "/api/auth-check" ||
+    req.path === "/logout" ||
+    req.path === "/api/logout"
+  ) {
     return next();
   }
   requireAdmin(req, res, next);

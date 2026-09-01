@@ -14,40 +14,260 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VALORA | Admin Login</title>
     <meta name="robots" content="noindex, nofollow">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800&display=swap">
     <link rel="stylesheet" href="admin.css">
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <script src="https://unpkg.com/lucide@latest"></script>
 </head>
-<body>
+<body class="login-page-body">
     <div class="login-container">
-        <div class="login-card glass">
-            <div class="text-center mb-8">
-                <h1 class="text-3xl font-black tracking-tighter text-white mb-2">VALORA <span class="text-red-500">ADMIN</span></h1>
-                <p class="text-gray-400 text-sm">Secure access to management panel</p>
+        <div class="login-card">
+            <!-- Header Section -->
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <div style="display: flex; justify-content: center;">
+                    <div class="login-badge">
+                        <span class="login-badge-dot"></span>
+                        <span>Restricted System</span>
+                    </div>
+                </div>
+                
+                <h1 style="font-size: 1.75rem; font-weight: 900; letter-spacing: -0.03em; color: #ffffff; margin-bottom: 0.5rem; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                    VALORA <span style="color: #ef4444;">ADMIN</span>
+                </h1>
+                <p style="color: #94a3b8; font-size: 0.875rem; line-height: 1.5;">Enter your authorized credentials to access the management portal</p>
             </div>
             
-            <form id="login-form" class="space-y-6" action="/admin/login" method="POST">
-                <div>
-                    <label class="block text-xs font-bold uppercase tracking-widest text-gray-500 mb-2">Username</label>
-                    <input type="text" name="username" id="username" placeholder="Admin username" required>
+            <!-- Error Alert Banner -->
+            <div id="login-error" class="login-error-box" style="display: none; margin-bottom: 1.5rem;">
+                <i data-lucide="alert-circle" style="width: 18px; height: 18px; color: #ef4444; flex-shrink: 0;"></i>
+                <div style="font-size: 0.8125rem; line-height: 1.4; color: #fca5a5;">
+                    <strong style="font-weight: 600;">Authentication failed:</strong> Invalid username or password. Please try again.
                 </div>
+            </div>
+
+            <!-- Login Form -->
+            <form id="login-form" action="/admin/login" method="POST" style="display: flex; flex-direction: column; gap: 1.25rem;">
+                <!-- Username Field -->
                 <div>
-                    <label class="block text-xs font-bold uppercase tracking-widest text-gray-500 mb-2">Password</label>
-                    <input type="password" name="password" id="password" placeholder="••••••••" required>
+                    <label for="username" style="display: block; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #94a3b8; margin-bottom: 0.5rem;">
+                        Admin Username
+                    </label>
+                    <div class="input-group">
+                        <span class="input-icon-left">
+                            <i data-lucide="user" style="width: 18px; height: 18px;"></i>
+                        </span>
+                        <input 
+                            type="text" 
+                            name="username" 
+                            id="username" 
+                            class="login-input" 
+                            placeholder="Enter username" 
+                            autocomplete="username" 
+                            required 
+                            autofocus
+                        >
+                    </div>
                 </div>
                 
-                <div id="login-error" class="text-red-500 text-xs text-center hidden">Invalid username or password</div>
+                <!-- Password Field -->
+                <div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                        <label for="password" style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #94a3b8;">
+                            Security Key / Password
+                        </label>
+                    </div>
+                    <div class="input-group">
+                        <span class="input-icon-left">
+                            <i data-lucide="lock" style="width: 18px; height: 18px;"></i>
+                        </span>
+                        <input 
+                            type="password" 
+                            name="password" 
+                            id="password" 
+                            class="login-input has-right-icon" 
+                            placeholder="••••••••••••" 
+                            autocomplete="current-password" 
+                            required
+                        >
+                        <button 
+                            type="button" 
+                            id="toggle-password-btn" 
+                            class="input-icon-right" 
+                            title="Show/Hide Password" 
+                            aria-label="Toggle password visibility"
+                        >
+                            <i data-lucide="eye" id="eye-icon" style="width: 18px; height: 18px;"></i>
+                        </button>
+                    </div>
+                </div>
                 
-                <button type="submit" class="btn-primary">Login to Dashboard</button>
+                <!-- Submit Button -->
+                <button type="submit" id="submit-btn" class="btn-login-submit" style="margin-top: 0.5rem;">
+                    <span id="btn-text">Sign In to Dashboard</span>
+                    <i data-lucide="arrow-right" id="btn-icon" style="width: 18px; height: 18px;"></i>
+                </button>
             </form>
+
+            <!-- Bottom Security Note & Back Link -->
+            <div style="margin-top: 2rem; padding-top: 1.25rem; border-top: 1px solid rgba(255, 255, 255, 0.06); display: flex; flex-direction: column; align-items: center; gap: 0.75rem;">
+                <div style="display: flex; align-items: center; gap: 6px; color: #64748b; font-size: 0.75rem;">
+                    <i data-lucide="shield-check" style="width: 14px; height: 14px; color: #10b981;"></i>
+                    <span>256-Bit SSL Encrypted Admin Gateway</span>
+                </div>
+                <a href="/" class="login-footer-link">
+                    <i data-lucide="arrow-left" style="width: 14px; height: 14px;"></i>
+                    <span>Back to Valora Main Site</span>
+                </a>
+            </div>
         </div>
     </div>
 
     <script>
-        // Check for error query param if needed, or just let the server handle it
+        // Check if already authenticated
+        if (sessionStorage.getItem('valora_admin_auth') === 'true' || localStorage.getItem('valora_admin_auth') === 'true') {
+            window.location.replace('/admin/index.html');
+        }
+
+        // Initialize Lucide Icons
+        if (window.lucide) {
+            lucide.createIcons();
+        }
+
+        // Toggle Password Visibility
+        const passwordInput = document.getElementById('password');
+        const togglePasswordBtn = document.getElementById('toggle-password-btn');
+        const eyeIcon = document.getElementById('eye-icon');
+
+        if (togglePasswordBtn && passwordInput) {
+            togglePasswordBtn.addEventListener('click', () => {
+                const isPassword = passwordInput.getAttribute('type') === 'password';
+                passwordInput.setAttribute('type', isPassword ? 'text' : 'password');
+                
+                // Update Icon
+                if (eyeIcon) {
+                    eyeIcon.setAttribute('data-lucide', isPassword ? 'eye-off' : 'eye');
+                    if (window.lucide) {
+                        lucide.createIcons();
+                    }
+                }
+            });
+        }
+
+        // Handle Asynchronous Login & Session Storage
+        const loginForm = document.getElementById('login-form');
+        const usernameInput = document.getElementById('username');
+        const submitBtn = document.getElementById('submit-btn');
+        const btnText = document.getElementById('btn-text');
+        const btnIcon = document.getElementById('btn-icon');
+        const errorBox = document.getElementById('login-error');
+
+        function showError(message) {
+            if (errorBox) {
+                const msgEl = errorBox.querySelector('div');
+                if (msgEl) {
+                    msgEl.innerHTML = `<strong style="font-weight: 600;">Authentication failed:</strong> ${message}`;
+                }
+                errorBox.style.display = 'flex';
+                if (window.lucide) {
+                    lucide.createIcons();
+                }
+            }
+        }
+
+        function resetButton() {
+            if (submitBtn) submitBtn.disabled = false;
+            if (btnText) btnText.textContent = 'Sign In to Dashboard';
+            if (btnIcon) {
+                btnIcon.setAttribute('data-lucide', 'arrow-right');
+                btnIcon.style.animation = 'none';
+                btnIcon.style.color = '';
+                if (window.lucide) {
+                    lucide.createIcons();
+                }
+            }
+        }
+
+        if (loginForm) {
+            loginForm.addEventListener('submit', async (e) => {
+                e.preventDefault(); // Prevent full page reload to ensure session storage and reliable redirect
+
+                const username = (usernameInput?.value || '').trim();
+                const password = (passwordInput?.value || '').trim();
+
+                if (!username || !password) {
+                    showError('Please enter both username and password.');
+                    return;
+                }
+
+                // Loading State
+                if (submitBtn) submitBtn.disabled = true;
+                if (btnText) btnText.textContent = 'Authenticating...';
+                if (btnIcon) {
+                    btnIcon.setAttribute('data-lucide', 'loader-2');
+                    btnIcon.style.animation = 'spin 1s linear infinite';
+                    if (window.lucide) {
+                        lucide.createIcons();
+                    }
+                }
+                if (errorBox) errorBox.style.display = 'none';
+
+                try {
+                    const response = await fetch('/admin/login', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({ username, password })
+                    });
+
+                    const data = await response.json().catch(() => ({}));
+
+                    if (response.ok && data.success) {
+                        // Store session credentials in storage for immediate access
+                        sessionStorage.setItem('valora_admin_auth', 'true');
+                        sessionStorage.setItem('valora_admin_user', username);
+                        localStorage.setItem('valora_admin_auth', 'true');
+                        document.cookie = "valora_admin=1; path=/; max-age=86400; SameSite=Lax";
+
+                        if (btnText) btnText.textContent = 'Success! Opening Dashboard...';
+                        if (btnIcon) {
+                            btnIcon.setAttribute('data-lucide', 'check');
+                            btnIcon.style.animation = 'none';
+                            btnIcon.style.color = '#10b981';
+                            if (window.lucide) {
+                                lucide.createIcons();
+                            }
+                        }
+
+                        // Immediate redirect to admin dashboard
+                        const target = data.redirect || '/admin/index.html';
+                        window.location.replace(target);
+                    } else {
+                        showError(data.error || 'Invalid username or password. Please try again.');
+                        resetButton();
+                    }
+                } catch (err) {
+                    console.error('Admin login error:', err);
+                    showError('Connection error. Please check your network and try again.');
+                    resetButton();
+                }
+            });
+        }
+
+        // Check for error query param
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.has('error')) {
-            document.getElementById('login-error').classList.remove('hidden');
+            showError('Invalid username or password. Please try again.');
         }
     </script>
+    <style>
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    </style>
 </body>
 </html>

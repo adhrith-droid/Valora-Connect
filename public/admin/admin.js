@@ -1,5 +1,49 @@
 // VALORA Admin Panel Logic
+
+// Client-Side Authentication Guard
+(function() {
+    const isAuth = sessionStorage.getItem('valora_admin_auth') === 'true' || localStorage.getItem('valora_admin_auth') === 'true';
+    if (!isAuth) {
+        window.location.replace('/admin/login.html');
+    }
+})();
+
+// Logout Function
+async function adminLogout(e) {
+    if (e) {
+        e.preventDefault();
+    }
+    sessionStorage.removeItem('valora_admin_auth');
+    sessionStorage.removeItem('valora_admin_user');
+    localStorage.removeItem('valora_admin_auth');
+    document.cookie = "valora_admin=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+    
+    try {
+        await fetch('/admin/logout', { method: 'POST' }).catch(() => {});
+    } catch (err) {}
+    
+    window.location.replace('/admin/login.html');
+}
+window.adminLogout = adminLogout;
+
+// Server Auth Verification
+async function verifyAdminSession() {
+    try {
+        const res = await fetch('/admin/api/auth-check');
+        if (!res.ok) {
+            sessionStorage.removeItem('valora_admin_auth');
+            sessionStorage.removeItem('valora_admin_user');
+            localStorage.removeItem('valora_admin_auth');
+            window.location.replace('/admin/login.html');
+        }
+    } catch (err) {
+        // Fallback for static environments or offline
+        console.warn('[Admin] Server session check skipped:', err);
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+    verifyAdminSession();
     lucide.createIcons();
     initSidebar();
     
