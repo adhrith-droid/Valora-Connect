@@ -695,24 +695,40 @@ app.get("/admin/api/analytics", requireAdmin, async (req, res) => {
   }
 });
 
+// Admin Static Assets Routes (explicit for reliability in all deployment environments)
+app.get(["/admin/admin.css", "/admin.css"], (req, res) => {
+  res.setHeader("Cache-Control", "no-cache, must-revalidate");
+  res.type("text/css").sendFile(path.join(__dirname, "public/admin/admin.css"));
+});
+
+app.get(["/admin/admin.js", "/admin.js"], (req, res) => {
+  res.setHeader("Cache-Control", "no-cache, must-revalidate");
+  res.type("application/javascript").sendFile(path.join(__dirname, "public/admin/admin.js"));
+});
+
 // Admin Page Routes
 app.get(["/admin", "/admin/", "/admin/dashboard", "/admin/index.html"], requireAdmin, (req, res) => {
+  res.setHeader("Cache-Control", "no-cache, must-revalidate");
   res.sendFile(path.join(__dirname, "public/admin/index.html"));
 });
 
 app.get(["/admin/reports", "/admin/reports-page", "/admin/reports.html"], requireAdmin, (req, res) => {
+  res.setHeader("Cache-Control", "no-cache, must-revalidate");
   res.sendFile(path.join(__dirname, "public/admin/reports.html"));
 });
 
 app.get(["/admin/banned", "/admin/banned-page", "/admin/banned.html"], requireAdmin, (req, res) => {
+  res.setHeader("Cache-Control", "no-cache, must-revalidate");
   res.sendFile(path.join(__dirname, "public/admin/banned.html"));
 });
 
 app.get(["/admin/analytics", "/admin/analytics-page", "/admin/analytics.html"], requireAdmin, (req, res) => {
+  res.setHeader("Cache-Control", "no-cache, must-revalidate");
   res.sendFile(path.join(__dirname, "public/admin/analytics.html"));
 });
 
 app.get(["/admin/login", "/admin/login.html"], (req, res) => {
+  res.setHeader("Cache-Control", "no-cache, must-revalidate");
   res.sendFile(path.join(__dirname, "public/admin/login.html"));
 });
 
